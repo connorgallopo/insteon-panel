@@ -1,6 +1,7 @@
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
+import "@ha/components/ha-button";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
 import { HomeAssistant } from "@ha/types";
@@ -98,12 +99,12 @@ class DialogInsteonSetOnLevel extends LitElement {
           ></ha-selector-select>
         </div>
         <div class="buttons">
-          <mwc-button @click=${this._dismiss} slot="secondaryAction">
-            ${this.hass!.localize("ui.dialogs.generic.cancel")}
-          </mwc-button>
-          <mwc-button @click=${this._submit} slot="primaryAction">
-            ${this.hass!.localize("ui.dialogs.generic.ok")}
-          </mwc-button>
+          <ha-button @click=${this._dismiss} slot="secondaryAction">
+            ${this.insteon!.localize("common.cancel")}
+          </ha-button>
+          <ha-button @click=${this._submit} slot="primaryAction">
+            ${this.insteon!.localize("common.ok")}
+          </ha-button>
         </div>
       </ha-dialog>
     `;

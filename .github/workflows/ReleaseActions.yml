@@ -5,7 +5,6 @@ on:
     types: ["published"]
 
 env:
-  NODE_VERSION: 14
   PYTHON_VERSION: "3.x"
 
 jobs:
@@ -13,74 +12,38 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to PyPi
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
 
       - name: Set up Python
-        uses: actions/setup-python@v3.1.2
+        uses: actions/setup-python@v6.0.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Set up Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v3
+      - name: Setup Node
+        uses: actions/setup-node@v5
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: ".nvmrc"
           cache: yarn
-
-      # Get updated translations
-      - name: Download Lokalise CLI
+      - name: "Set version number from tag"
         run: |
-          curl -sfL https://raw.githubusercontent.com/lokalise/lokalise-cli-2-go/master/install.sh | sh
-      - name: Downloading translations
-        run: |
-          ./bin/lokalise2 \
-            --token "${{ secrets.lokalise_token }}"\
-            --project-id "854515055f679055040b37.42677693" \
-            file download \
-            --format json \
-            --unzip-to /tmp/lokalise \
-            --export-empty-as skip \
-            --export-sort a_z \
-            --original-filenames=false  \
-            --bundle-structure %LANG_ISO%.%FORMAT%
-      - name: Move new  translations
-        run: |
-          rm -R /home/runner/work/frontend/frontend/src/localize/languages/
-          mkdir -p /home/runner/work/frontend/frontend/src/localize/languages/
-          cp /tmp/lokalise/* /home/runner/work/frontend/frontend/src/localize/languages/
-
-      - name: "Set version number"
-        run: |
-          export version=${{ github.ref }}
-          sed -i "s|main|${version##*/}|" ./setup.py
-          sed -i "s|main|${version##*/}|" ./build/version.py
-          sed -i "s|main|${version##*/}|" ./src/version.ts
-
-          cat ./setup.py
-          cat ./build/version.py
+          echo -n '${{ github.ref_name }}' > ./VERSION
+          sed -i 's/dev/${{ github.ref_name }}/g' ./src/version.ts
+          cat ./VERSION
           cat ./src/version.ts
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install setuptools wheel twine
-          make bootstrap
+          python -m pip install build twine
+          ./script/bootstrap
 
       - name: Build
-        run: make build
+        run: yarn build
 
       - name: Publish to PyPi
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          python setup.py sdist bdist_wheel
+          python -m build
           twine upload dist/*
-
-      - name: Discord notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        uses: Ilshidur/action-discord@0.3.2
-        with:
-          args: "New version of insteon frontend are now pushed to [PyPi](https://pypi.org/project/insteon_ha_frontend)."

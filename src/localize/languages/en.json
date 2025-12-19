@@ -16,11 +16,18 @@
   "scenes": {
     "caption": "Insteon Scenes",
     "add_scene": "Add scene",
+    "delete_scene": {
+      "title": "Delete Scene",
+      "message": "Do you want to delete this scene? This will remove the scene from Home Assistant and from the Insteon modem and devices. You will no longer be able to control this scene."
+    },
     "fields": {
       "group": "Scene",
       "name": "Name",
       "num_devices": "Devices",
       "actions": "Actions"
+    },
+    "unsaved": {
+      "message": "Changes have not been written to the modem or the devices. Unsaved changes will be lost."
     },
     "scene": {
       "introduction": "An Insteon scene allows you to control multiple Insteon devices simultaniously.",
@@ -43,6 +50,8 @@
   },
   "utils": {
     "caption": "Utilities",
+    "aldb_loading_short": "Waiting on ALDB Loading",
+    "aldb_loading_long": "One or more All-Link Databases are loading. Results cannot be displayed until that process is complete.",
     "config_modem": {
       "caption": "Change the modem connection",
       "success": "Success",
@@ -81,6 +90,40 @@
         "confirm_delete": "Are you sure you want to delete the device override for ",
         "delete": "Delete device override"
       }
+    },
+    "broken_links": {
+      "caption": "Broken Links",
+      "fields": {
+        "device": "Device with Link",
+        "target": "Device missing link",
+        "group": "Group",
+        "status": "Status",
+        "recommendation": "Recommendation"
+      },
+      "actions": {
+        "target_db_not_loaded": "Load All-Link Database",
+        "missing_responder": "Delete exiting record",
+        "missing_controller": "Create missing record"
+      },
+      "status": {
+        "target_db_not_loaded": "All-Link Database not loaded",
+        "missing_responder": "Missing responder record",
+        "missing_controller": "Missing controller record"
+      },
+      "load_aldb": "The All-Link Database for device ",
+      "load_aldb_1": " will load in the background. If this is a battery operated device, you will need to trigger the device to wake up before the ALDB will load.",
+      "remove_record": "The record will be removed from device "
+    },
+    "unknown_devices": {
+      "caption": "Unknown Devices",
+      "fields": {
+        "address": "Device Address"
+      },
+      "actions": {
+        "delete": "Delete",
+        "discover": "Discover",
+        "override": "Create override"
+      }
     }
   },
   "common": {
@@ -114,7 +157,19 @@
       "wake_up": "Because this is a battery operated device, the process will run in the background the next time the device wakes up.",
       "delete": "This will remove the device from Home Assistant and from the Insteon modem. You will no longer be able to control this device.",
       "unsaved": "You have changes that have not been writen to the device. Are you sure you want to leave?"
-    }
+    },
+    "unsaved": {
+      "title": "Unsaved Changes",
+      "message": "Changes have not been written to the device. Unsaved changes will be lost."
+    },
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "leave": "Leave",
+    "stay": "Stay",
+    "close": "Close"
   },
   "device": {
     "caption": "Insteon Device",
@@ -183,7 +238,8 @@
       "create": "Create ALDB Record",
       "show": "Show Unused",
       "hide": "Hide Unused",
-      "add_default_links": "Add Default Links"
+      "add_default_links": "Add Default Links",
+      "download": "Download"
     },
     "fields": {
       "id": "Record ID",

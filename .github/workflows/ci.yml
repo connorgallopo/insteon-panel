@@ -1,0 +1,88 @@
+name: "CI"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out files from GitHub
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Setup Node and Dependencies
+        uses: ./.github/actions/setup
+
+      - name: Run eslint
+        run: yarn run lint:eslint
+
+      - name: Run prettier
+        run: yarn run lint:prettier
+
+      - name: Check for duplicate dependencies
+        run: yarn dedupe --check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out files from GitHub
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Setup Node and Dependencies
+        uses: ./.github/actions/setup
+
+      - name: Run tests
+        run: yarn test
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check out files from GitHub
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Setup Node and Dependencies
+        uses: ./.github/actions/setup
+
+      - name: Run tests with coverage
+        run: yarn run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        # always() to also upload coverage if tests are failing
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./test/coverage
+          fail_ci_if_error: true
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out files from GitHub
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Setup Node and Dependencies
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: yarn build

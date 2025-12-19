@@ -1,13 +1,17 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const webpack = require("webpack");
+const { existsSync } = require("fs");
 const path = require("path");
+const rspack = require("@rspack/core");
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const { RsdoctorRspackPlugin } = require("@rsdoctor/rspack-plugin");
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const { StatsWriterPlugin } = require("webpack-stats-plugin");
-const filterStats = require("@bundle-stats/plugin-webpack-filter").default;
+const filterStats = require("@bundle-stats/plugin-webpack-filter");
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const TerserPlugin = require("terser-webpack-plugin");
-const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
-const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
+const { WebpackManifestPlugin } = require("rspack-manifest-plugin");
 const log = require("fancy-log");
-const WebpackBar = require("webpackbar");
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const WebpackBar = require("webpackbar/rspack");
 const paths = require("./paths.cjs");
 const bundle = require("./bundle.cjs");
 
@@ -25,7 +29,7 @@ class LogStartCompilePlugin {
   }
 }
 
-const createWebpackConfig = ({
+const createRspackConfig = ({
   entry,
   outputPath,
   publicPath,
@@ -43,26 +47,28 @@ const createWebpackConfig = ({
   return {
     mode: isProdBuild ? "production" : "development",
     target: `browserslist:${latestBuild ? "modern" : "legacy"}`,
-    // For tests/CI, source maps are skipped to gain build speed
-    devtool: false
-      ? false
-      : isProdBuild
-        ? "nosources-source-map"
-        : "eval-cheap-module-source-map",
+    devtool: isProdBuild ? "cheap-module-source-map" : "eval-cheap-module-source-map",
     entry,
     node: false,
     module: {
       rules: [
         {
           test: /\.m?js$|\.ts$/,
-          use: {
-            loader: "babel-loader",
-            options: {
-              ...bundle.babelOptions({ latestBuild }),
-              cacheDirectory: !isProdBuild,
-              cacheCompression: false,
+          exclude: /node_modules[\\/]core-js/,
+          use: (info) => [
+            {
+              loader: "babel-loader",
+              options: {
+                ...bundle.babelOptions({ latestBuild, sw: info.issuerLayer === "sw" }),
+                cacheDirectory: !isProdBuild,
+                cacheCompression: false,
+              },
             },
-          },
+            {
+              loader: "builtin:swc-loader",
+              options: bundle.swcOptions(),
+            },
+          ],
           resolve: {
             fullySpecified: false,
           },
@@ -83,6 +89,13 @@ const createWebpackConfig = ({
       ],
       moduleIds: isProdBuild && !isStatsBuild ? "deterministic" : "named",
       chunkIds: isProdBuild && !isStatsBuild ? "deterministic" : "named",
+      splitChunks: {
+        // Disable splitting for web workers with ESM output
+        // Imports of external chunks are broken
+        chunks: latestBuild
+          ? (chunk) => !chunk.canBeInitial() && !/^.+-worker$/.test(chunk.name)
+          : undefined,
+      },
     },
     plugins: [
       new WebpackBar({ fancy: !isProdBuild }),
@@ -90,10 +103,8 @@ const createWebpackConfig = ({
         // Only include the JS of entrypoints
         filter: (file) => file.isInitial && !file.name.endsWith(".map"),
       }),
-      new webpack.DefinePlugin(
-        bundle.definedVars({ isProdBuild, latestBuild, defineOverlay }),
-      ),
-      new webpack.IgnorePlugin({
+      new rspack.DefinePlugin(bundle.definedVars({ isProdBuild, latestBuild, defineOverlay })),
+      new rspack.IgnorePlugin({
         checkResource(resource, context) {
           // Only use ignore to intercept imports that we don't control
           // inside node_module dependencies.
@@ -102,7 +113,8 @@ const createWebpackConfig = ({
             // calling define.amd will call require("!!webpack amd options")
             resource.startsWith("!!webpack") ||
             // loaded by webpack dev server but doesn't exist.
-            resource === "webpack/hot"
+            resource === "webpack/hot" ||
+            resource.startsWith("@swc/helpers")
           ) {
             return false;
           }
@@ -112,48 +124,32 @@ const createWebpackConfig = ({
               ? path.resolve(context, resource)
               : require.resolve(resource);
           } catch (err) {
-            // eslint-disable-next-line no-console
-            console.error(
-              "Error in Home Assistant ignore plugin",
-              resource,
-              context,
-            );
+            console.error("Error in Home Assistant ignore plugin", resource, context);
             throw err;
           }
 
-          return ignorePackages.some((toIgnorePath) =>
-            fullPath.startsWith(toIgnorePath),
-          );
+          return ignorePackages.some((toIgnorePath) => fullPath.startsWith(toIgnorePath));
         },
       }),
-      new webpack.NormalModuleReplacementPlugin(
-        new RegExp(
-          bundle.emptyPackages({ latestBuild, isHassioBuild }).join("|"),
-        ),
-        path.resolve(
-          paths.polymer_dir,
-          "homeassistant-frontend/src/util/empty.js",
-        ),
+      new rspack.NormalModuleReplacementPlugin(
+        new RegExp(bundle.emptyPackages({ isHassioBuild }).join("|")),
+        path.resolve(paths.root_dir, "homeassistant-frontend/src/util/empty.js"),
       ),
-      // See `src/resources/intl-polyfill-legacy.ts` for explanation
-      !latestBuild &&
-        new webpack.NormalModuleReplacementPlugin(
-          new RegExp(
-            path.resolve(
-              paths.polymer_dir,
-              "homeassistant-frontend/src/resources/intl-polyfill.ts",
-            ),
-          ),
-          path.resolve(
-            paths.polymer_dir,
-            "homeassistant-frontend/src/resources/intl-polyfill-legacy.ts",
-          ),
-        ),
       !isProdBuild && new LogStartCompilePlugin(),
+      isProdBuild &&
+        isStatsBuild &&
+        new RsdoctorRspackPlugin({
+          reportDir: path.join(paths.build_dir, "rsdoctor"),
+          features: ["plugins", "bundle"],
+          supports: {
+            generateTileGraph: true,
+          },
+        }),
     ].filter(Boolean),
     resolve: {
       extensions: [".ts", ".js", ".json"],
       alias: {
+        "lit/static-html$": "lit/static-html.js",
         "lit/decorators$": "lit/decorators.js",
         "lit/directive$": "lit/directive.js",
         "lit/directives/until$": "lit/directives/until.js",
@@ -162,43 +158,44 @@ const createWebpackConfig = ({
         "lit/directives/if-defined$": "lit/directives/if-defined.js",
         "lit/directives/guard$": "lit/directives/guard.js",
         "lit/directives/cache$": "lit/directives/cache.js",
+        "lit/directives/join$": "lit/directives/join.js",
         "lit/directives/repeat$": "lit/directives/repeat.js",
+        "lit/directives/live$": "lit/directives/live.js",
+        "lit/directives/keyed$": "lit/directives/keyed.js",
         "lit/polyfill-support$": "lit/polyfill-support.js",
-        "@lit-labs/virtualizer/layouts/grid":
-          "@lit-labs/virtualizer/layouts/grid.js",
+        "@lit-labs/virtualizer/layouts/grid": "@lit-labs/virtualizer/layouts/grid.js",
         "@lit-labs/virtualizer/polyfills/resize-observer-polyfill/ResizeObserver":
           "@lit-labs/virtualizer/polyfills/resize-observer-polyfill/ResizeObserver.js",
+        "@lit-labs/observers/resize-controller": "@lit-labs/observers/resize-controller.js",
       },
-      plugins: [
-        new TsconfigPathsPlugin({
-          configFile: "tsconfig.json",
-          extensions: [".ts", ".tsx", ".js", ".json"],
-        }),
-      ],
+      tsConfig: path.resolve(paths.root_dir, "tsconfig.json"),
     },
     output: {
-      filename: ({ chunk }) => {
-        if (!isProdBuild || isStatsBuild || dontHash.has(chunk.name)) {
-          return `${chunk.name}-dev.js`;
-        }
-        return `${chunk.name}-${chunk.hash.substr(0, 8)}.js`;
-      },
-      chunkFilename:
-        isProdBuild && !isStatsBuild ? "[chunkhash:8].js" : "[id].chunk.js",
+      module: latestBuild,
+      filename: ({ chunk }) =>
+        !isProdBuild || isStatsBuild || dontHash.has(chunk.name)
+          ? "[name].dev.js"
+          : "[name].[contenthash].js",
+      chunkFilename: isProdBuild && !isStatsBuild ? "[name].[contenthash].js" : "[name].js",
+      assetModuleFilename: isProdBuild && !isStatsBuild ? "[id].[contenthash][ext]" : "[id][ext]",
+      crossOriginLoading: "use-credentials",
+      hashFunction: "xxhash64",
       path: outputPath,
       publicPath,
       // To silence warning in worker plugin
       globalObject: "self",
     },
     experiments: {
+      outputModule: true,
       topLevelAwait: true,
     },
   };
 };
 
-const createPanelConfig = ({ isProdBuild, latestBuild }) =>
-  createWebpackConfig(bundle.config.panel({ isProdBuild, latestBuild }));
+const createInsteonConfig = ({ isProdBuild, latestBuild }) =>
+  createRspackConfig(bundle.config.insteon({ isProdBuild, latestBuild }));
 
 module.exports = {
-  createPanelConfig: createPanelConfig,
+  createInsteonConfig,
+  createRspackConfig,
 };

@@ -4,6 +4,7 @@ import "@ha/components/ha-code-editor";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
 import { HomeAssistant } from "@ha/types";
+import "@ha/components/ha-button";
 import { Insteon } from "../../data/insteon";
 import { ALDBRecord } from "../../data/device";
 import "./insteon-aldb-data-table";
@@ -36,6 +37,8 @@ class DialogInsteonALDBRecord extends LitElement {
 
   @state() private _opened = false;
 
+  private _require_change = true;
+
   public async showDialog(params: InsteonALDBRecordDialogParams): Promise<void> {
     this.hass = params.hass;
     this.insteon = params.insteon;
@@ -47,6 +50,7 @@ class DialogInsteonALDBRecord extends LitElement {
     this._title = params.title;
     this._errors = {};
     this._opened = true;
+    this._require_change = params.require_change;
   }
 
   protected render(): TemplateResult {
@@ -68,12 +72,12 @@ class DialogInsteonALDBRecord extends LitElement {
           ></ha-form>
         </div>
         <div class="buttons">
-          <mwc-button @click=${this._dismiss} slot="secondaryAction">
-            ${this.hass.localize("ui.dialogs.generic.cancel")}
-          </mwc-button>
-          <mwc-button @click=${this._submit} slot="primaryAction">
-            ${this.hass.localize("ui.dialogs.generic.ok")}
-          </mwc-button>
+          <ha-button @click=${this._dismiss} slot="secondaryAction">
+            ${this.hass.localize("ui.common.cancel")}
+          </ha-button>
+          <ha-button @click=${this._submit} slot="primaryAction">
+            ${this.hass.localize("ui.common.ok")}
+          </ha-button>
         </div>
       </ha-dialog>
     `;
@@ -88,7 +92,7 @@ class DialogInsteonALDBRecord extends LitElement {
   }
 
   private async _submit(): Promise<void> {
-    if (!this._changeMade()) {
+    if (!this._changeMade() && this._require_change) {
       this._close();
       return;
     }

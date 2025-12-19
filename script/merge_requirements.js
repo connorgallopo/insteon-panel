@@ -1,22 +1,43 @@
-const fs = require("fs");
+import fs from "fs";
 
-let rawcore = fs.readFileSync("./homeassistant-frontend/package.json");
-let rawinsteon = fs.readFileSync("./package.json");
+const rawPackageCore = fs.readFileSync("./homeassistant-frontend/package.json");
+const rawPackageInsteon = fs.readFileSync("./package.json");
 
-const core = JSON.parse(rawcore);
-const insteon = JSON.parse(rawinsteon);
+const packageCore = JSON.parse(rawPackageCore);
+const packageInsteon = JSON.parse(rawPackageInsteon);
+
+const _replaceYarnPath = (path) => path.replace(/\.yarn\//g, "homeassistant-frontend/.yarn/");
+
+const subdir_dependencies = Object.fromEntries(
+  Object.entries(packageCore.dependencies).map(([key, value]) => [key, _replaceYarnPath(value)]),
+);
+
+const subdir_dev_dependencies = Object.fromEntries(
+  Object.entries(packageCore.devDependencies).map(([key, value]) => [key, _replaceYarnPath(value)]),
+);
+
+const subdir_resolutions = Object.fromEntries(
+  Object.entries(packageCore.resolutions).map(([key, value]) => [key, _replaceYarnPath(value)]),
+);
 
 fs.writeFileSync(
   "./package.json",
   JSON.stringify(
     {
-      ...insteon,
-      resolutions: { ...core.resolutions, ...insteon.resolutionsOverride },
-      dependencies: { ...core.dependencies, ...insteon.dependenciesOverride },
-      devDependencies: { ...core.devDependencies, ...insteon.devDependenciesOverride },
-      prettier: { ...core.devDependencies, ...insteon.devDependenciesOverride },
+      ...packageInsteon,
+      dependencies: { ...subdir_dependencies, ...packageInsteon.dependenciesOverride },
+      devDependencies: {
+        ...subdir_dev_dependencies,
+        ...packageInsteon.devDependenciesOverride,
+      },
+      resolutions: { ...subdir_resolutions, ...packageInsteon.resolutionsOverride },
+      packageManager: packageCore.packageManager,
     },
     null,
-    2
-  )
+    2,
+  ),
 );
+
+const yarnRcCore = fs.readFileSync("./homeassistant-frontend/.yarnrc.yml", "utf8");
+const yarnRcInsteon = yarnRcCore.replace(/\.yarn\//g, "homeassistant-frontend/.yarn/");
+fs.writeFileSync("./.yarnrc.yml", yarnRcInsteon);

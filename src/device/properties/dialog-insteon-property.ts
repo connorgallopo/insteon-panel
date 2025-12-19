@@ -1,5 +1,3 @@
-// import "@material/mwc-button/mwc-button";
-// import "@polymer/paper-input/paper-input";
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
@@ -9,6 +7,7 @@ import { HomeAssistant } from "@ha/types";
 import { Insteon } from "../../data/insteon";
 import { InsteonProperty, PropertyRadioButtons } from "../../data/device";
 import "@ha/components/ha-form/ha-form";
+import "@ha/components/ha-button"
 import type {
   HaFormSchema,
   HaFormMultiSelectSchema,
@@ -79,12 +78,12 @@ class DialogInsteonProperty extends LitElement {
           ></ha-form>
         </div>
         <div class="buttons">
-          <mwc-button @click=${this._dismiss} slot="secondaryAction">
-            ${this.hass.localize("ui.dialogs.generic.cancel")}
-          </mwc-button>
-          <mwc-button @click=${this._submit} slot="primaryAction">
-            ${this.hass.localize("ui.dialogs.generic.ok")}
-          </mwc-button>
+          <ha-button appearance="plain" @click=${this._dismiss} slot="secondaryAction">
+            ${this.hass.localize("ui.common.cancel")}
+          </ha-button>
+          <ha-button appearance="plain" @click=${this._submit} slot="primaryAction">
+            ${this.hass.localize("ui.common.ok")}
+          </ha-button>
         </div>
       </ha-dialog>
     `;

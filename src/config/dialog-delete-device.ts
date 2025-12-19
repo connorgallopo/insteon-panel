@@ -1,4 +1,3 @@
-import "@material/mwc-button/mwc-button";
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
@@ -6,6 +5,7 @@ import { createCloseHeading } from "@ha/components/ha-dialog";
 import "@ha/components/ha-alert"
 import { haStyleDialog } from "@ha/resources/styles";
 import { HomeAssistant } from "@ha/types";
+import "@ha/components/ha-button";
 import { Insteon } from "../data/insteon";
 import "@ha/components/ha-form/ha-form";
 import type { HaFormSchema } from "@ha/components/ha-form/types";
@@ -69,12 +69,12 @@ class DialogDeleteDevice extends LitElement {
           ></ha-form>
         </div>
         <div class="buttons">
-          <mwc-button @click=${this._dismiss} slot="secondaryAction">
-            ${this.hass.localize("ui.dialogs.generic.cancel")}
-          </mwc-button>
-          <mwc-button @click=${this._submit} slot="primaryAction">
-            ${this.hass.localize("ui.dialogs.generic.ok")}
-          </mwc-button>
+          <ha-button @click=${this._dismiss} slot="secondaryAction">
+            ${this.hass.localize("ui.common.cancel")}
+          </ha-button>
+          <ha-button @click=${this._submit} slot="primaryAction">
+            ${this.hass.localize("ui.common.ok")}
+          </ha-button>
         </div>
       </ha-dialog>
     `;
@@ -100,8 +100,8 @@ class DialogDeleteDevice extends LitElement {
   private async _confirmDeleteScope(address: string) {
     const confirm = await showConfirmationDialog(this, {
       text: this.insteon.localize("common.warn.delete"),
-      confirmText: this.hass!.localize("ui.common.yes"),
-      dismissText: this.hass!.localize("ui.common.no"),
+      confirmText: this.insteon!.localize("common.yes"),
+      dismissText: this.insteon!.localize("common.no"),
       warning: true,
     });
     if (!confirm) {
@@ -113,8 +113,8 @@ class DialogDeleteDevice extends LitElement {
         ${this.insteon.localize("device.remove_all_refs.description")}<br><br>
         ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br>
         ${this.insteon.localize("device.remove_all_refs.dismiss_description")}`,
-      confirmText: this.hass!.localize("ui.common.yes"),
-      dismissText: this.hass!.localize("ui.common.no"),
+      confirmText: this.insteon!.localize("common.yes"),
+      dismissText: this.insteon!.localize("common.no"),
       warning: true,
       destructive: true,
     });

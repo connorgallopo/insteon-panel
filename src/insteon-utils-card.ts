@@ -1,5 +1,3 @@
-import "@lrnwebcomponents/simple-tooltip/simple-tooltip";
-import "@material/mwc-ripple";
 import type { Ripple } from "@material/mwc-ripple";
 import { RippleHandlers } from "@material/mwc-ripple/ripple-handlers";
 import {
@@ -17,6 +15,7 @@ import {
   state,
 } from "lit/decorators";
 import "@ha/components/ha-card";
+import "@ha/components/ha-ripple";
 import "@ha/components/ha-button";
 import "@ha/components/ha-svg-icon";
 import "@ha/components/ha-icon-next";
@@ -35,7 +34,7 @@ export class InsteonUtilsCard extends LitElement {
 
   @property({ attribute: false }) public action_url?: string;
 
-  @queryAsync("mwc-ripple") private _ripple!: Promise<Ripple | null>;
+  @queryAsync("ha-ripple") private _ripple!: Promise<Ripple | null>;
 
   @state() private _shouldRenderRipple = false;
 
@@ -65,7 +64,7 @@ export class InsteonUtilsCard extends LitElement {
   private _generateCard() {
     return html`
     <ha-card outlined>
-        ${this._shouldRenderRipple ? html`<mwc-ripple></mwc-ripple>` : ""}
+        ${this._shouldRenderRipple ? html`<ha-ripple></ha-ripple>` : ""}
         <div class="header">
           <slot name="icon"></slot>
           <div class="info">${this.title}</div>
@@ -77,7 +76,7 @@ export class InsteonUtilsCard extends LitElement {
         ${this.action_text
         ? html`
         <div class="card-actions">
-            <ha-button>
+            <ha-button appearance="plain">
               ${this.action_text}
             </ha-button>
         </div>`

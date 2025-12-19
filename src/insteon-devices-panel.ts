@@ -196,7 +196,7 @@ export class InsteonDevicesPanel extends LitElement {
         .columns=${this._columns(this.narrow)}
         @row-click=${this._handleRowClicked}
         clickable
-        .localizeFunc=${this.insteon.localize}
+        .localizeFunc=${this.hass.localize}
         .mainPage=${true}
         .hasFab=${true}
       >

@@ -11,7 +11,8 @@ import "@ha/components/ha-button"
 import type { HaFormSchema, HaFormSelectSchema } from "@ha/components/ha-form/types";
 import { insteonConfigModemDialogParams } from "./show-dialog-config-modem";
 import "@ha/components/ha-alert"
-import "@ha/components/ha-circular-progress"
+import "@ha/components/ha-spinner"
+import "@ha/components/ha-button"
 
 @customElement("dialog-config-modem")
 class DialogInsteonConfigModem extends LitElement {
@@ -92,14 +93,14 @@ class DialogInsteonConfigModem extends LitElement {
         ${this._saving
         ? html`
               <div slot="primaryAction" class="submit-spinner">
-                <ha-circular-progress active></ha-circular-progress>
+                <ha-spinner active></ha-spinner>
               </div>
             `
         : html`
         <div class="buttons">
-          <mwc-button @click=${this._submit} .disabled=${!this._hasChanged} slot="primaryAction">
-            ${this.hass!.localize("ui.dialogs.generic.ok")}
-          </mwc-button>
+          <ha-button @click=${this._submit} .disabled=${!this._hasChanged} slot="primaryAction">
+            ${this.insteon!.localize("common.ok")}
+          </ha-button>
         </div>
       </ha-dialog>`
       }

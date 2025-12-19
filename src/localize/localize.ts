@@ -15,13 +15,15 @@ const warnings: { language: string[]; sting: Record<string, string[]> } = {
 const _localizationCache = {};
 
 function get_lang_value(keys: string[], language) {
-  let value = language;
+  let curr_lang = language;
+  let value;
   keys.forEach((key) => {
-    value = value[key];
-    if (!value) {
-      return "";
+    if (!curr_lang || !(key in curr_lang)) {
+      value = "";
+      return;
     }
-    return value;
+    curr_lang = curr_lang[key];
+    value = curr_lang;
   });
   return value;
 }

@@ -1,25 +1,36 @@
-import "@material/mwc-button";
 import { mdiDotsVertical } from "@mdi/js";
-import type { ActionDetail } from "@material/mwc-list";
+import type { CSSResultGroup, TemplateResult, PropertyValues } from "lit";
 import {
   css,
-  CSSResultGroup,
   html,
   LitElement,
-  TemplateResult,
-  PropertyValues,
 } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import { classMap } from "lit/directives/class-map";
-import {
+import type {
   HomeAssistant,
   Route,
 } from "@ha/types";
 import "@ha/components/ha-icon-button";
-import "./insteon-properties-data-table";
-import { Insteon, InsteonDevice } from "../../data/insteon";
+import "@ha/components/ha-button";
+import "@ha/components/ha-list-item";
+import type { HASSDomEvent } from "@ha/common/dom/fire_event";
 import {
-  InsteonProperty,
+  showConfirmationDialog,
+  showAlertDialog,
+} from "@ha/dialogs/generic/show-dialog-box";
+import type { HaFormSchema } from "@ha/components/ha-form/types";
+import type { RowClickedEvent } from "@ha/components/data-table/ha-data-table";
+import "@ha/layouts/hass-tabs-subpage";
+import { navigate } from "@ha/common/navigate";
+import "@ha/components/ha-button-menu";
+import { haStyle } from "@ha/resources/styles";
+import "./insteon-properties-data-table";
+import { showInsteonPropertyDialog } from "./show-dialog-insteon-property";
+import { insteonDeviceTabs } from "../insteon-device-router";
+import type { Insteon, InsteonDevice } from "../../data/insteon";
+import type { InsteonProperty } from "../../data/device";
+import {
   fetchInsteonDevice,
   fetchInsteonProperties,
   changeProperty,
@@ -28,19 +39,8 @@ import {
   resetProperties,
   removeInsteonDevice,
 } from "../../data/device";
-import { HASSDomEvent } from "@ha/common/dom/fire_event";
-import { showInsteonPropertyDialog } from "./show-dialog-insteon-property";
-import {
-  showConfirmationDialog,
-  showAlertDialog,
-} from "@ha/dialogs/generic/show-dialog-box";
-import type { HaFormSchema } from "@ha/components/ha-form/types";
-import { RowClickedEvent } from "@ha/components/data-table/ha-data-table";
-import "@ha/layouts/hass-tabs-subpage";
-import { insteonDeviceTabs } from "../insteon-device-router";
-import { navigate } from "@ha/common/navigate";
-import "@ha/components/ha-button-menu";
-import { haStyle } from "@ha/resources/styles";
+// import { get_insteon_devices_tabs } from "../insteon-device-router";
+
 
 @customElement("insteon-device-properties-page")
 class InsteonDevicePropertiesPage extends LitElement {
@@ -101,7 +101,7 @@ class InsteonDevicePropertiesPage extends LitElement {
         .route=${this.route!}
         .tabs=${insteonDeviceTabs}
         .localizeFunc=${this.insteon.localize}
-        .backCallback=${async () => this._handleBackTapped()}
+        .backCallback=${this._handleBackTapped}
       >
       ${this.narrow
         ? html`
@@ -136,6 +136,7 @@ class InsteonDevicePropertiesPage extends LitElement {
               <div class="logo header-right">
                 <img
                   src="https://brands.home-assistant.io/insteon/logo.png"
+                  alt="Insteon Logo"
                   referrerpolicy="no-referrer"
                   @load=${this._onImageLoad}
                   @error=${this._onImageError}
@@ -176,35 +177,35 @@ class InsteonDevicePropertiesPage extends LitElement {
         ></ha-icon-button>
 
         <!-- 0 -->
-        <mwc-list-item>
+        <ha-list-item>
           ${this.insteon!.localize("common.actions.load")}
-        </mwc-list-item>
+        </ha-list-item>
 
         <!-- 1 -->
-        <mwc-list-item .disabled=${!this._dirty()}>
+        <ha-list-item .disabled=${!this._dirty()}>
           ${this.insteon!.localize("common.actions.write")}
-        </mwc-list-item>
+        </ha-list-item>
 
         <!-- 2 -->
-        <mwc-list-item .disabled=${!this._dirty()}>
+        <ha-list-item .disabled=${!this._dirty()}>
           ${this.insteon!.localize("common.actions.reset")}
-        </mwc-list-item>
+        </ha-list-item>
 
         <!-- 3 -->
-        <mwc-list-item
+        <ha-list-item
           aria-label=${this.insteon.localize("device.actions.delete")}
           class=${classMap({ warning: true })}
         >
         ${this.insteon.localize("device.actions.delete")}
-      </mwc-list-item>
+      </ha-list-item>
 
         <!-- 4 -->
         ${this._advancedAvailable
-          ? html`<mwc-list-item>
+          ? html`<ha-list-item>
             ${this.insteon!.localize(
               "properties.actions." + this._showHideAdvanced,
             )}
-          </mwc-list-item>`
+          </ha-list-item>`
           : ""
         }
       </ha-button-menu>
@@ -222,8 +223,8 @@ class InsteonDevicePropertiesPage extends LitElement {
   private async _onLoadPropertiesClick() {
     await showConfirmationDialog(this, {
       text: this.insteon!.localize("common.warn.load"),
-      confirmText: this.hass!.localize("ui.common.yes"),
-      dismissText: this.hass!.localize("ui.common.no"),
+      confirmText: this.insteon!.localize("common.yes"),
+      dismissText: this.insteon!.localize("common.no"),
       confirm: async () => this._load(),
     });
   }
@@ -240,7 +241,7 @@ class InsteonDevicePropertiesPage extends LitElement {
     } catch (err) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.load"),
-        confirmText: this.hass!.localize("ui.common.close"),
+        confirmText: this.insteon!.localize("common.close")
       });
     }
     this._showWait = false;
@@ -249,8 +250,8 @@ class InsteonDevicePropertiesPage extends LitElement {
   private async _onDeleteDevice() {
     await showConfirmationDialog(this, {
       text: this.insteon.localize("common.warn.delete"),
-      confirmText: this.hass!.localize("ui.common.yes"),
-      dismissText: this.hass!.localize("ui.common.no"),
+      confirmText: this.insteon!.localize("common.yes"),
+      dismissText: this.insteon!.localize("common.no"),
       confirm: async () => this._checkScope(),
       warning: true,
     });
@@ -272,8 +273,8 @@ class InsteonDevicePropertiesPage extends LitElement {
         ${this.insteon.localize("device.remove_all_refs.description")}<br><br>
         ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br>
         ${this.insteon.localize("device.remove_all_refs.dismiss_description")}`,
-      confirmText: this.hass!.localize("ui.common.yes"),
-      dismissText: this.hass!.localize("ui.common.no"),
+      confirmText: this.insteon!.localize("common.yes"),
+      dismissText: this.insteon!.localize("common.no"),
       warning: true,
       destructive: true,
     });
@@ -283,8 +284,8 @@ class InsteonDevicePropertiesPage extends LitElement {
   private async _onWritePropertiesClick() {
     await showConfirmationDialog(this, {
       text: this.insteon!.localize("common.warn.write"),
-      confirmText: this.hass!.localize("ui.common.yes"),
-      dismissText: this.hass!.localize("ui.common.no"),
+      confirmText: this.insteon!.localize("common.yes"),
+      dismissText: this.insteon!.localize("common.no"),
       confirm: async () => this._write(),
     });
   }
@@ -301,7 +302,7 @@ class InsteonDevicePropertiesPage extends LitElement {
     } catch (err) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.write"),
-        confirmText: this.hass!.localize("ui.common.close"),
+        confirmText: this.insteon!.localize("common.close")
       });
     }
     this._getProperties();
@@ -320,8 +321,8 @@ class InsteonDevicePropertiesPage extends LitElement {
     this._schema = this._translateSchema(propertiesInfo.schema);
   }
 
-  private async _onResetPropertiesClick() {
-    resetProperties(this.hass, this._device!.address);
+  private _onResetPropertiesClick = async () => {
+    await resetProperties(this.hass, this._device!.address);
     this._getProperties();
   }
 
@@ -346,15 +347,15 @@ class InsteonDevicePropertiesPage extends LitElement {
     this._getProperties();
   }
 
-  private async _handleBackTapped(): Promise<void> {
+  private _handleBackTapped = async () => {
     if (this._dirty()) {
       await showConfirmationDialog(this, {
-        text: this.hass!.localize(
-          "ui.panel.config.common.editor.confirm_unsaved",
-        ),
-        confirmText: this.hass!.localize("ui.common.yes"),
-        dismissText: this.hass!.localize("ui.common.no"),
-        confirm: () => this._goBack(),
+        title: this.insteon!.localize("common.unsaved.title"),
+        text: this.insteon!.localize("common.unsaved.message"),
+        confirmText: this.insteon!.localize("common.leave"),
+        dismissText: this.insteon!.localize("common.stay"),
+        destructive: true,
+        confirm: this._goBack,
       });
     } else {
       navigate("/insteon/devices");
@@ -391,8 +392,8 @@ class InsteonDevicePropertiesPage extends LitElement {
     this._getProperties();
   }
 
-  private _goBack(): void {
-    resetProperties(this.hass, this._device!.address);
+  private _goBack = async (): Promise<void> => {
+    await resetProperties(this.hass, this._device!.address);
     navigate("/insteon/devices");
   }
 
@@ -455,7 +456,7 @@ class InsteonDevicePropertiesPage extends LitElement {
         }
 
         :host([narrow]) {
-          --properties-table-height: 86vh;
+          --properties-table-height: 80vh;
         }
 
         :host(:not([narrow])) {
@@ -529,7 +530,7 @@ class InsteonDevicePropertiesPage extends LitElement {
           justify-content: flex-end;
         }
 
-        .actions mwc-button {
+        .actions ha-button {
           margin: 8px;
         }
 

@@ -1,6 +1,7 @@
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
+import "@ha/components/ha-button";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
 import { HomeAssistant } from "@ha/types";
@@ -68,9 +69,9 @@ class DialogInsteonAddingDevice extends LitElement {
         <br />
         <div class="devices">${this._devicesAddedText}</div>
         <div class="buttons">
-          <mwc-button @click=${this._checkCancel} slot="primaryAction">
+          <ha-button @click=${this._checkCancel} slot="primaryAction">
             ${this._buttonText(this._subscribed)}
-          </mwc-button>
+          </ha-button>
         </div>
       </ha-dialog>
     `;
@@ -86,7 +87,7 @@ class DialogInsteonAddingDevice extends LitElement {
 
   private _buttonText(active): string {
     if (active) return this.insteon.localize("device.actions.stop");
-    return this.hass!.localize("ui.dialogs.generic.ok");
+    return this.insteon!.localize("common.ok");
   }
 
   private _showAddedDevices(): string {

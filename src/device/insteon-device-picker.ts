@@ -1,10 +1,10 @@
-import "@material/mwc-list/mwc-list-item";
 import { UnsubscribeFunc } from "home-assistant-js-websocket";
 import { html, LitElement, PropertyValues, TemplateResult } from "lit";
 import { ComboBoxLitRenderer } from "@vaadin/combo-box/lit";
 import { customElement, property, query, state } from "lit/decorators";
 import memoizeOne from "memoize-one";
 import { fireEvent } from "@ha/common/dom/fire_event";
+import "@ha/components/ha-list-item";
 import { stringCompare } from "@ha/common/string/compare";
 import {
   AreaRegistryEntry,
@@ -12,6 +12,8 @@ import {
 } from "@ha/data/area_registry";
 import {
   computeDeviceName,
+} from "@ha/common/entity/compute_device_name";
+import {
   DeviceEntityLookup,
   DeviceRegistryEntry,
   subscribeDeviceRegistry,
@@ -38,12 +40,12 @@ export type HaDevicePickerDeviceFilterFunc = (
   device: DeviceRegistryEntry
 ) => boolean;
 
-const rowRenderer: ComboBoxLitRenderer<Device> = (item) => html`<mwc-list-item
+const rowRenderer: ComboBoxLitRenderer<Device> = (item) => html`<ha-list-item
   .twoline=${!!item.area}
 >
   <span>${item.name}</span>
   <span slot="secondary">${item.area}</span>
-</mwc-list-item>`;
+</ha-list-item>`;
 
 @customElement("insteon-device-picker")
 export class InsteonDevicePicker extends SubscribeMixin(LitElement) {
