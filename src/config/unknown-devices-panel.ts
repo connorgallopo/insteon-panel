@@ -12,18 +12,15 @@ import "@ha/layouts/hass-tabs-subpage-data-table";
 import { HomeAssistant } from "@ha/types";
 import { Insteon } from "../data/insteon";
 import {
-  UnknownDevice,
   fetchUnknownDevices,
 } from "../data/config";
 import { navigate } from "@ha/common/navigate";
 import "@ha/components/ha-fab";
 import { showConfirmationDialog } from "@ha/dialogs/generic/show-dialog-box";
-import { toAddressId } from "tools/address-utils";
 import "@ha/components/ha-button-menu";
 import "@ha/components/ha-icon-button";
-import type { ActionDetail } from "@material/mwc-list";
 import "@ha/components/ha-icon-overflow-menu";
-import {writeALDB, changeALDBRecord, ALDBRecord, loadALDB, resetALDB, removeInsteonDevice,} from "../data/device";
+import { removeInsteonDevice } from "../data/device";
 import { showInsteonAddingDeviceDialog } from "../device/show-dialog-adding-device";
 
 
@@ -131,8 +128,8 @@ export class UnknownDevicesPanel extends LitElement {
     const address = record.address;
     const confirm = await showConfirmationDialog(this, {
       text: this.insteon.localize("common.warn.delete"),
-      confirmText: this.hass!.localize("ui.common.yes"),
-      dismissText: this.hass!.localize("ui.common.no"),
+      confirmText: this.insteon!.localize("common.yes"),
+      dismissText: this.insteon!.localize("common.no"),
       warning: true,
     });
     if (!confirm) {
@@ -144,8 +141,8 @@ export class UnknownDevicesPanel extends LitElement {
         ${this.insteon.localize("device.remove_all_refs.description")}<br><br>
         ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br>
         ${this.insteon.localize("device.remove_all_refs.dismiss_description")}`,
-      confirmText: this.hass!.localize("ui.common.yes"),
-      dismissText: this.hass!.localize("ui.common.no"),
+      confirmText: this.insteon!.localize("common.yes"),
+      dismissText: this.insteon!.localize("common.no"),
       warning: true,
       destructive: true,
     });

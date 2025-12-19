@@ -14,7 +14,7 @@ import "@ha/components/ha-form/ha-form";
 import "@ha/components/ha-button";
 import { AddDeviceOverrideDialogParams } from "./show-dialog-add-device-override";
 import "@ha/components/ha-alert";
-import "@ha/components/ha-circular-progress";
+import "@ha/components/ha-spinner";
 import { checkAddress, checkHexNumber } from "../tools/address-utils";
 
 @customElement("dialog-add-device-override")
@@ -77,14 +77,14 @@ class DialogAddDeviceOverride extends LitElement {
         ${this._saving
           ? html`
               <div slot="primaryAction" class="submit-spinner">
-                <ha-circular-progress active></ha-circular-progress>
+                <ha-spinner active></ha-spinner>
               </div>
             `
           : html`
         <div class="buttons">
-          <mwc-button @click=${this._submit} slot="primaryAction">
-            ${this.hass!.localize("ui.dialogs.generic.ok")}
-          </mwc-button>
+          <ha-button @click=${this._submit} slot="primaryAction">
+            ${this.insteon!.localize("common.ok")}
+          </ha-button>
         </div>
       </ha-dialog>`}
       </ha-dialog>

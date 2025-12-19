@@ -1,6 +1,7 @@
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/layouts/hass-tabs-subpage";
+import "@ha/components/ha-button";
 import { haStyle } from "@ha/resources/styles";
 import { HomeAssistant, Route } from "@ha/types";
 import { Insteon } from "./data/insteon";
@@ -288,7 +289,7 @@ export class InsteonUtilsPanel extends LitElement {
           cursor: initial;
           direction: var(--direction);
         }
-        .active-filters mwc-button {
+        .active-filters ha-button {
           margin-left: 8px;
           margin-inline-start: 8px;
           margin-inline-end: initial;

@@ -18,10 +18,8 @@ import {
 import { navigate } from "@ha/common/navigate";
 import "@ha/components/ha-fab";
 import { showConfirmationDialog } from "@ha/dialogs/generic/show-dialog-box";
-import { toAddressId } from "tools/address-utils";
 import "@ha/components/ha-button-menu";
 import "@ha/components/ha-icon-button";
-import type { ActionDetail } from "@material/mwc-list";
 import "@ha/components/ha-icon-overflow-menu";
 import {
   writeALDB,

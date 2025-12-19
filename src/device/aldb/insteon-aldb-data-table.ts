@@ -1,7 +1,7 @@
 import { html, LitElement, TemplateResult } from "lit";
 import { customElement, property } from "lit/decorators";
 import memoizeOne from "memoize-one";
-import "@ha/components/ha-circular-progress";
+import "@ha/components/ha-spinner";
 import "@ha/components/data-table/ha-data-table";
 import { DataTableColumnContainer, DataTableRowData } from "@ha/components/data-table/ha-data-table";
 import { Insteon } from "../../data/insteon";
@@ -160,7 +160,7 @@ export class InsteonALDBDataTable extends LitElement {
   protected render(): TemplateResult {
     if (this.showWait) {
       return html`
-        <ha-circular-progress active alt="Loading"></ha-circular-progress>
+        <ha-spinner active alt="Loading"></ha-spinner>
       `;
     }
     return html`
@@ -173,7 +173,7 @@ export class InsteonALDBDataTable extends LitElement {
         .searchLabel=${this.hass.localize("ui.components.data-table.search")}
         .noDataText="${this._noDataText(this.isLoading)}"
       >
-        <ha-circular-progress active alt="Loading"></ha-circular-progress>
+        <ha-spinner active alt="Loading"></ha-spinner>
       </ha-data-table>
     `;
   }

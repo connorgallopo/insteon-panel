@@ -8,18 +8,25 @@ import { HomeAssistant, Route } from "@ha/types";
 import { PageNavigation } from "@ha/layouts/hass-tabs-subpage";
 import { Insteon } from "../data/insteon";
 
-export const insteonDeviceTabs: PageNavigation[] = [
-  {
-    translationKey: "properties.caption",
-    path: `/insteon/device/properties/`,
-    iconPath: mdiFolderMultipleOutline,
-  },
-  {
-    translationKey: "aldb.caption",
-    path: `/insteon/device/aldb/`,
-    iconPath: mdiNetwork,
-  },
-];
+
+
+export function get_insteon_devices_tabs(localize: (string: string) => string): PageNavigation[] {
+  return [
+    {
+      name: localize("properties.caption"),
+      path: `/insteon/device/properties/`,
+      iconPath: mdiFolderMultipleOutline,
+    },
+    {
+      name: localize("aldb.caption"),
+      path: `/insteon/device/aldb/`,
+      iconPath: mdiNetwork,
+    },
+  ];
+}
+
+export var insteonDeviceTabs : PageNavigation[] | undefined = undefined;
+
 
 @customElement("insteon-device-router")
 class InsteonDeviceRouter extends HassRouterPage {
@@ -63,6 +70,9 @@ class InsteonDeviceRouter extends HassRouterPage {
     el.narrow = this.narrow;
     const tail = this.routeTail.path.split("/");
     this.deviceId = tail[tail.length - 1];
+    if (!insteonDeviceTabs) {
+      insteonDeviceTabs = get_insteon_devices_tabs(this.insteon.localize);
+    }
     insteonDeviceTabs[0].path = "/insteon/device/properties/" + this.deviceId;
     insteonDeviceTabs[1].path = "/insteon/device/aldb/" + this.deviceId;
     el.deviceId = this.deviceId;

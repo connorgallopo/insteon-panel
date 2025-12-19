@@ -1,7 +1,7 @@
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
 import { customElement, property, query } from "lit/decorators";
 import memoizeOne from "memoize-one";
-import "@ha/components/ha-circular-progress";
+import "@ha/components/ha-spinner";
 
 import "@ha/components/data-table/ha-data-table";
 import type {
@@ -129,11 +129,11 @@ export class InsteonPropertiesDataTable extends LitElement {
   protected render(): TemplateResult {
     if (this.showWait) {
       return html`
-        <ha-circular-progress
+        <ha-spinner
           class="fullwidth"
           active
           alt="Loading"
-        ></ha-circular-progress>
+        ></ha-spinner>
       `;
     }
     return html`
@@ -171,7 +171,7 @@ export class InsteonPropertiesDataTable extends LitElement {
 
   static get styles(): CSSResultGroup {
     return css`
-      ha-circular-progress {
+      ha-spinner {
         align-items: center;
         justify-content: center;
         padding: 8px;

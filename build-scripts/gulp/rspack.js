@@ -1,11 +1,12 @@
-// Tasks to run webpack.
+// Tasks to run rspack.
 
 import log from "fancy-log";
 import fs from "fs";
 import gulp from "gulp";
-import webpack from "webpack";
+import rspack from "@rspack/core";
+import { RspackDevServer } from "@rspack/dev-server";
 import paths from "../paths.cjs";
-import { createPanelConfig } from "../webpack.cjs";
+import { createInsteonConfig } from "../rspack.cjs";
 
 const bothBuilds = (createConfigFunc, params) => [
   createConfigFunc({ ...params, latestBuild: true }),
@@ -14,14 +15,11 @@ const bothBuilds = (createConfigFunc, params) => [
 
 const isWsl =
   fs.existsSync("/proc/version") &&
-  fs
-    .readFileSync("/proc/version", "utf-8")
-    .toLocaleLowerCase()
-    .includes("microsoft");
+  fs.readFileSync("/proc/version", "utf-8").toLocaleLowerCase().includes("microsoft");
 
-gulp.task("ensure-panel-build-dir", (done) => {
-  if (!fs.existsSync(paths.panel_output_root)) {
-    fs.mkdirSync(paths.panel_output_root, { recursive: true });
+gulp.task("ensure-insteon-build-dir", (done) => {
+  if (!fs.existsSync(paths.insteon_output_root)) {
+    fs.mkdirSync(paths.insteon_output_root, { recursive: true });
   }
   if (!fs.existsSync(paths.app_output_root)) {
     fs.mkdirSync(paths.app_output_root, { recursive: true });
@@ -52,27 +50,27 @@ const doneHandler = (done) => (err, stats) => {
 
 const prodBuild = (conf) =>
   new Promise((resolve) => {
-    webpack(
+    rspack(
       conf,
-      // Resolve promise when done. Because we pass a callback, webpack closes itself
-      doneHandler(resolve)
+      // Resolve promise when done. Because we pass a callback, rspack closes itself
+      doneHandler(resolve),
     );
   });
 
-gulp.task("webpack-watch-panel", () => {
+gulp.task("rspack-watch-insteon", () => {
   // This command will run forever because we don't close compiler
-  webpack(
-    createPanelConfig({
+  rspack(
+    createInsteonConfig({
       isProdBuild: false,
       latestBuild: true,
-    })
+    }),
   ).watch({ ignored: /build/, poll: isWsl }, doneHandler());
 });
 
-gulp.task("webpack-prod-panel", () =>
+gulp.task("rspack-prod-insteon", () =>
   prodBuild(
-    bothBuilds(createPanelConfig, {
+    bothBuilds(createInsteonConfig, {
       isProdBuild: true,
-    })
-  )
+    }),
+  ),
 );

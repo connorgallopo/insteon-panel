@@ -3,7 +3,7 @@ import { customElement, property } from "lit/decorators";
 import { applyThemesOnElement } from "@ha/common/dom/apply_themes_on_element";
 import { navigate } from "@ha/common/navigate";
 import { makeDialogManager } from "@ha/dialogs/make-dialog-manager";
-import "@ha/resources/ha-style";
+import "@ha/resources/append-ha-style";
 import { HomeAssistant, Route } from "@ha/types";
 import { LocationChangedEvent } from "./data/common";
 import { insteonElement } from "./insteon";

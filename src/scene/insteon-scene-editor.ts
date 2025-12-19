@@ -1,6 +1,6 @@
 import { ActionDetail } from "@material/mwc-list/mwc-list-foundation";
-import "@material/mwc-list/mwc-list-item";
 import { mdiContentSave, mdiDelete, mdiDotsVertical } from "@mdi/js";
+import "@ha/components/ha-list-item";
 import "@polymer/paper-item/paper-icon-item";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-item/paper-item-body";
@@ -30,6 +30,8 @@ import "@ha/components/ha-checkbox";
 import "@ha/components/ha-switch";
 import {
   computeDeviceName,
+} from "@ha/common/entity/compute_device_name";
+import {
   DeviceRegistryEntry,
   fetchDeviceRegistry,
 } from "@ha/data/device_registry";
@@ -201,7 +203,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
             .path=${mdiDotsVertical}
           ></ha-icon-button>
 
-          <mwc-list-item
+          <ha-list-item
             .disabled=${!this.sceneId}
             aria-label=${this.insteon.localize("scenes.scene.delete")}
             class=${classMap({ warning: Boolean(this.sceneId) })}
@@ -214,7 +216,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
               .path=${mdiDelete}
             >
             </ha-svg-icon>
-          </mwc-list-item>
+          </ha-list-item>
         </ha-button-menu>
         ${this._errors ? html` <div class="errors">${this._errors}</div> ` : ""}
         ${!this.narrow ? html` <span slot="header">${name}</span> ` : ""}
@@ -227,10 +229,10 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
           <ha-config-section vertical .isWide=${this.isWide}>
             ${this._saving
               ? html`<div>
-                  <ha-circular-progress
+                  <ha-spinner
                     active
                     alt="Loading"
-                  ></ha-circular-progress>
+                  ></ha-spinner>
                 </div>`
               : this._showEditorArea(name, devices)}
           </ha-config-section>
@@ -676,14 +678,10 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
   private async confirmUnsavedChanged(): Promise<boolean> {
     if (this._dirty) {
       const action = showConfirmationDialog(this, {
-        title: this.hass!.localize(
-          "ui.panel.config.scene.editor.unsaved_confirm_title"
-        ),
-        text: this.hass!.localize(
-          "ui.panel.config.scene.editor.unsaved_confirm_text"
-        ),
-        confirmText: this.hass!.localize("ui.common.leave"),
-        dismissText: this.hass!.localize("ui.common.stay"),
+        title: this.insteon!.localize("common.unsaved.title"),
+        text: this.insteon!.localize("scene.unsaved.message"),
+        confirmText: this.insteon!.localize("common.leave"),
+        dismissText: this.insteon!.localize("common.stay"),
         destructive: true,
       });
       history.back();
@@ -694,9 +692,11 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
 
   private _deleteTapped(): void {
     showConfirmationDialog(this, {
-      text: this.hass!.localize("ui.panel.config.scene.picker.delete_confirm"),
-      confirmText: this.hass!.localize("ui.common.delete"),
-      dismissText: this.hass!.localize("ui.common.cancel"),
+      title: this.insteon!.localize("scenes.delete_scene.title"),
+      text: this.insteon!.localize("scenes.delete_scene.message"),
+      confirmText: this.insteon!.localize("common.delete"),
+      dismissText: this.insteon!.localize("common.cancel"),
+      destructive: true,
       confirm: () => this._delete(),
     });
     history.back();
@@ -710,7 +710,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     if (!result.result) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.scene_write"),
-        confirmText: this.hass!.localize("ui.common.close"),
+        confirmText: this.insteon!.localize("common.close")
       });
       history.back();
     }
@@ -721,7 +721,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     if (!this._checkDeviceEntitySelections()) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.scene_device_no_entities"),
-        confirmText: this.hass!.localize("ui.common.close"),
+        confirmText: this.insteon!.localize("common.close")
       });
       history.back();
       return;
@@ -751,7 +751,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     if (!result.result) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.scene_write"),
-        confirmText: this.hass!.localize("ui.common.close"),
+        confirmText: this.insteon!.localize("common.close")
       });
       history.back();
     } else {
@@ -797,7 +797,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
         .script ha-card {
           margin-top: 16px;
         }
-        .add-card mwc-button {
+        .add-card ha-button {
           display: block;
           text-align: center;
         }

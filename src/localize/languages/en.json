@@ -16,11 +16,18 @@
   "scenes": {
     "caption": "Insteon Scenes",
     "add_scene": "Add scene",
+    "delete_scene": {
+      "title": "Delete Scene",
+      "message": "Do you want to delete this scene? This will remove the scene from Home Assistant and from the Insteon modem and devices. You will no longer be able to control this scene."
+    },
     "fields": {
       "group": "Scene",
       "name": "Name",
       "num_devices": "Devices",
       "actions": "Actions"
+    },
+    "unsaved": {
+      "message": "Changes have not been written to the modem or the devices. Unsaved changes will be lost."
     },
     "scene": {
       "introduction": "An Insteon scene allows you to control multiple Insteon devices simultaniously.",
@@ -150,7 +157,19 @@
       "wake_up": "Because this is a battery operated device, the process will run in the background the next time the device wakes up.",
       "delete": "This will remove the device from Home Assistant and from the Insteon modem. You will no longer be able to control this device.",
       "unsaved": "You have changes that have not been writen to the device. Are you sure you want to leave?"
-    }
+    },
+    "unsaved": {
+      "title": "Unsaved Changes",
+      "message": "Changes have not been written to the device. Unsaved changes will be lost."
+    },
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "leave": "Leave",
+    "stay": "Stay",
+    "close": "Close"
   },
   "device": {
     "caption": "Insteon Device",

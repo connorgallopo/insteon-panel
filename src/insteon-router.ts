@@ -7,25 +7,29 @@ import {
 import { PageNavigation } from "@ha/layouts/hass-tabs-subpage";
 import { HomeAssistant, Route } from "@ha/types";
 import { Insteon } from "./data/insteon";
-import { unknown } from "superstruct";
 
-export const insteonMainTabs: PageNavigation[] = [
-  {
-    translationKey: "devices.caption",
-    path: `/insteon/devices`,
-    iconPath: mdiFolderMultipleOutline,
-  },
-  {
-    translationKey: "scenes.caption",
-    path: `/insteon/scenes`,
-    iconPath: mdiNetwork,
-  },
-  {
-    translationKey: "utils.caption",
-    path: `/insteon/utils`,
-    iconPath: mdiWrench,
-  },
-];
+
+export var insteonMainTabs: PageNavigation[] | undefined = undefined;
+
+function get_insteon_main_tabs(localize: (string: string) => string): PageNavigation[] {
+  return [
+    {
+      name: localize("devices.caption"),
+      path: `/insteon/devices`,
+      iconPath: mdiFolderMultipleOutline,
+    },
+    {
+      name: localize("scenes.caption"),
+      path: `/insteon/scenes`,
+      iconPath: mdiNetwork,
+    },
+    {
+      name: localize("utils.caption"),
+      path: `/insteon/utils`,
+      iconPath: mdiWrench,
+    },
+  ];
+}
 
 @customElement("insteon-router")
 class InsteonRouter extends HassRouterPage {
@@ -88,6 +92,10 @@ class InsteonRouter extends HassRouterPage {
     el.narrow = this.narrow;
     el.isWide = isWide;
     el.section = section;
+
+    if (!insteonMainTabs) {
+      insteonMainTabs = get_insteon_main_tabs(this.insteon.localize);
+    }
 
     if (this._currentPage == "device") {
       const routeSplit = this.routeTail.path.split("/");

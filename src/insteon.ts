@@ -1,12 +1,12 @@
 import { LitElement } from "lit";
 import { property } from "lit/decorators";
-import { Insteon } from "./data/insteon";
+import { ProvideHassLitMixin } from "@ha/mixins/provide-hass-lit-mixin";
+import { getConfigEntries } from "@ha/data/config_entries";
+import type { HomeAssistant } from "@ha/types";
+import type { Insteon } from "./data/insteon";
 import { addedToLovelace } from "./tools/added-to-lovelace";
 import { InsteonLogger } from "./tools/insteon-logger";
 import { localize } from "./localize/localize";
-import { ProvideHassLitMixin } from "@ha/mixins/provide-hass-lit-mixin";
-import { getConfigEntries } from "@ha/data/config_entries";
-import { HomeAssistant } from "@ha/types";
 
 export class insteonElement extends ProvideHassLitMixin(LitElement) {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -27,7 +27,7 @@ export class insteonElement extends ProvideHassLitMixin(LitElement) {
         (entry) =>
           entry.domain === "insteon" &&
           entry.disabled_by == null &&
-          entry.source != "ignore",
+          entry.source !== "ignore",
       )[0];
       this.insteon = {
         language: this.hass.language,
