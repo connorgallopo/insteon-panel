@@ -1,6 +1,6 @@
 import { fireEvent } from "@ha/common/dom/fire_event";
-import { Insteon } from "../../data/insteon";
-import { ALDBRecord } from "../../data/device";
+import type { Insteon } from "../../data/insteon";
+import type { ALDBRecord } from "../../data/device";
 import type { HomeAssistant } from "@ha/types";
 import type { HaFormSchema } from "@ha/components/ha-form/types";
 
@@ -19,7 +19,7 @@ export const loadInsteonALDBRecordDialog = () =>
 
 export const showInsteonALDBRecordDialog = (
   element: HTMLElement,
-  insteonALDBRecordParams: InsteonALDBRecordDialogParams
+  insteonALDBRecordParams: InsteonALDBRecordDialogParams,
 ): void => {
   fireEvent(element, "show-dialog", {
     dialogTag: "dialog-insteon-aldb-record",

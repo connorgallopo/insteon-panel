@@ -1,5 +1,5 @@
 import { fireEvent } from "@ha/common/dom/fire_event";
-import { Insteon } from "../data/insteon";
+import type { Insteon } from "../data/insteon";
 import type { HomeAssistant } from "@ha/types";
 
 export interface AddDeviceOverrideDialogParams {
@@ -11,9 +11,7 @@ export interface AddDeviceOverrideDialogParams {
 }
 
 export const loadAddDeviceOverrideDialog = () =>
-  import(
-    /* webpackChunkName: "dialog-add-device-override" */ "./dialog-add-device-override"
-  );
+  import(/* webpackChunkName: "dialog-add-device-override" */ "./dialog-add-device-override");
 
 export const showAddDeviceOverrideDialog = (
   element: HTMLElement,

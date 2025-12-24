@@ -3,11 +3,12 @@ import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
 import json from "highlight.js/lib/languages/json";
 import yaml from "highlight.js/lib/languages/yaml";
-import { html, TemplateResult } from "lit";
+import type { TemplateResult } from "lit";
+import { html } from "lit";
 import marked_ from "marked";
 import emoji from "node-emoji";
 import "../../components/insteon-link";
-import { Repository } from "../../data/common";
+import type { Repository } from "../../data/common";
 import { GFM, HLJS } from "./styles";
 
 hljs.registerLanguage("yaml", yaml);
@@ -39,7 +40,7 @@ export class markdown {
     input = emoji.emojify(input);
 
     // Handle convertion to raw GitHub URL
-    input = input.replace(/(https:\/\/github\.com\/.*.\/blob*.[^\s]+)/g, function (x) {
+    input = input.replace(/(https:\/\/github\.com\/.*.\/blob*.[^\s]+)/g, (x) => {
       if (x.includes(".md")) {
         return x;
       }
@@ -50,7 +51,7 @@ export class markdown {
 
     // Handle relative links
     if (repo) {
-      input = input.replace(/!\[*.*\]\(\w*\.\w*\)/g, function (x) {
+      input = input.replace(/!\[*.*\]\(\w*\.\w*\)/g, (x) => {
         return x
           .replace("(", `(https://raw.githubusercontent.com/${repo?.full_name}/master/`)
           .replace("/blob/", "/");
@@ -63,7 +64,7 @@ export class markdown {
       (url, commit) => {
         const hash = commit.substr(0, 7);
         return `[\`${hash}\`](${url})`;
-      }
+      },
     );
 
     // Add references to issues and PRs
@@ -79,7 +80,7 @@ export class markdown {
     content.className = "markdown-body";
     content.innerHTML = DOMPurify.sanitize(marked(input), {
       css: false,
-    }).replace(/\<a href="http\w:\/\/.*.\">.*.\<\/a>\W/g, function (x) {
+    }).replace(/\<a href="http\w:\/\/.*.\">.*.\<\/a>\W/g, (x) => {
       return x.replace(/<a href=/gm, "<insteon-link url=").replace(/<\/a>/gm, "</insteon-link>");
     });
     const style = document.createElement("style");

@@ -1,4 +1,4 @@
-import { PageNavigation } from "@ha/layouts/hass-tabs-subpage";
+import type { PageNavigation } from "@ha/layouts/hass-tabs-subpage";
 
 export interface insteonPageNavigation extends PageNavigation {
   class?: string;
@@ -144,5 +144,5 @@ export interface Filter {
 
 export const sortRepositoriesByName = (repositories: Repository[]): Repository[] =>
   repositories?.sort((a: Repository, b: Repository) =>
-    a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1
+    a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1,
   );

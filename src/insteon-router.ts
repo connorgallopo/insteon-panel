@@ -1,13 +1,10 @@
 import { customElement, property, state } from "lit/decorators";
 import { mdiNetwork, mdiFolderMultipleOutline, mdiWrench } from "@mdi/js";
-import {
-  HassRouterPage,
-  RouterOptions,
-} from "@ha/layouts/hass-router-page";
-import { PageNavigation } from "@ha/layouts/hass-tabs-subpage";
-import { HomeAssistant, Route } from "@ha/types";
-import { Insteon } from "./data/insteon";
-
+import type { RouterOptions } from "@ha/layouts/hass-router-page";
+import { HassRouterPage } from "@ha/layouts/hass-router-page";
+import type { PageNavigation } from "@ha/layouts/hass-tabs-subpage";
+import type { HomeAssistant, Route } from "@ha/types";
+import type { Insteon } from "./data/insteon";
 
 export var insteonMainTabs: PageNavigation[] | undefined = undefined;
 
@@ -70,23 +67,22 @@ class InsteonRouter extends HassRouterPage {
       },
       device_overrides: {
         tag: "device-overrides-panel",
-        load: () => import("./config/device-overrides-panel")
+        load: () => import("./config/device-overrides-panel"),
       },
       broken_links: {
         tag: "broken-links-panel",
-        load: () => import("./config/broken-links-panel")
+        load: () => import("./config/broken-links-panel"),
       },
       unknown_devices: {
         tag: "unknown-devices-panel",
-        load: () => import("./config/unknown-devices-panel")
-      }
+        load: () => import("./config/unknown-devices-panel"),
+      },
     },
   };
 
   protected updatePageEl(el) {
     const section = this.route.path.replace("/", "");
-    const isWide =
-      this.hass.dockedSidebar === "docked" ? this._wideSidebar : this._wide;
+    const isWide = this.hass.dockedSidebar === "docked" ? this._wideSidebar : this._wide;
     el.hass = this.hass;
     el.route = this.routeTail;
     el.narrow = this.narrow;
@@ -97,12 +93,12 @@ class InsteonRouter extends HassRouterPage {
       insteonMainTabs = get_insteon_main_tabs(this.insteon.localize);
     }
 
-    if (this._currentPage == "device") {
+    if (this._currentPage === "device") {
       const routeSplit = this.routeTail.path.split("/");
       el.deviceId = routeSplit[routeSplit.length - 1];
     }
 
-    if (this._currentPage == "scene") {
+    if (this._currentPage === "scene") {
       const routeSplit = this.routeTail.path.split("/");
       el.sceneId = routeSplit[routeSplit.length - 1];
     }

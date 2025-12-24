@@ -1,18 +1,16 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
-import { HomeAssistant } from "@ha/types";
-import { Insteon } from "../../data/insteon";
-import { InsteonProperty, PropertyRadioButtons } from "../../data/device";
+import type { HomeAssistant } from "@ha/types";
+import type { Insteon } from "../../data/insteon";
+import type { InsteonProperty, PropertyRadioButtons } from "../../data/device";
 import "@ha/components/ha-form/ha-form";
-import "@ha/components/ha-button"
-import type {
-  HaFormSchema,
-  HaFormMultiSelectSchema,
-} from "@ha/components/ha-form/types";
-import { InsteonPropertyDialogParams } from "./show-dialog-insteon-property";
+import "@ha/components/ha-button";
+import type { HaFormSchema, HaFormMultiSelectSchema } from "@ha/components/ha-form/types";
+import type { InsteonPropertyDialogParams } from "./show-dialog-insteon-property";
 
 @customElement("dialog-insteon-property")
 class DialogInsteonProperty extends LitElement {
@@ -42,11 +40,11 @@ class DialogInsteonProperty extends LitElement {
     this.hass = params.hass;
     this.insteon = params.insteon;
     this._record = params.record;
-    if (this._record.name == "radio_button_groups") {
+    if (this._record.name === "radio_button_groups") {
       const rb_schema = params.schema[0] as HaFormMultiSelectSchema;
       this._formData = this._radio_button_value(
         this._record as PropertyRadioButtons,
-        Math.floor(Object.entries(rb_schema.options).length / 2)
+        Math.floor(Object.entries(rb_schema.options).length / 2),
       );
       this._schema = this._radio_button_schema(this._record.value as [[number]] | [], rb_schema);
     } else {
@@ -98,8 +96,8 @@ class DialogInsteonProperty extends LitElement {
       this._close();
       return;
     }
-    let value: string | boolean | number | [] | number[][] | undefined = undefined;
-    if (this._record.name == "radio_button_groups") {
+    let value: string | boolean | number | [] | number[][] | undefined;
+    if (this._record.name === "radio_button_groups") {
       if (!this._validate_radio_buttons(this._formData)) {
         return;
       }
@@ -113,7 +111,7 @@ class DialogInsteonProperty extends LitElement {
   }
 
   private _changeMade(): boolean {
-    if (this._record.name == "radio_button_groups") {
+    if (this._record.name === "radio_button_groups") {
       const form_values = this._radio_button_groups_to_value(this._formData);
       return this._record!.value !== form_values;
     }
@@ -130,7 +128,7 @@ class DialogInsteonProperty extends LitElement {
 
   private _radio_button_value(
     curr_prop: PropertyRadioButtons,
-    num_groups: number
+    num_groups: number,
   ): { [key: string]: [number] | [] } {
     const num_curr_groups = curr_prop.value.length;
     const curr_groups: [[number]] = curr_prop.value as [[number]];
@@ -150,15 +148,13 @@ class DialogInsteonProperty extends LitElement {
       }
       // eslint-disable-next-line no-console
       console.info(
-        "New prop value: " + group_name + " value " + radio_button_group_properties[group_name]
+        "New prop value: " + group_name + " value " + radio_button_group_properties[group_name],
       );
     }
     return radio_button_group_properties;
   }
 
-  private _radio_button_schema(
-    schema: HaFormMultiSelectSchema
-  ): HaFormMultiSelectSchema[] {
+  private _radio_button_schema(schema: HaFormMultiSelectSchema): HaFormMultiSelectSchema[] {
     const new_schema: HaFormMultiSelectSchema[] = [];
     const num_buttons: number = Object.entries(schema.options).length;
     const max_groups: number = Math.floor(num_buttons / 2);
@@ -179,7 +175,7 @@ class DialogInsteonProperty extends LitElement {
   }
 
   private _radio_button_groups_to_value(props: { [key: string]: [number] | [] }): number[][] {
-    const output: number[][] =[];
+    const output: number[][] = [];
     Object.entries(props).forEach(([_, value]) => {
       if (value.length > 0) {
         const int_value = value.map((button) => {
@@ -197,7 +193,7 @@ class DialogInsteonProperty extends LitElement {
     // Make sure there are two entries in each group
     const selected_buttons: string[] = [];
     Object.entries(props).forEach(([group_name, value]) => {
-      if (value.length == 1) {
+      if (value.length === 1) {
         this._errors[group_name] = "Must have at least 2 buttons in a group";
         is_valid = false;
       }
@@ -208,7 +204,7 @@ class DialogInsteonProperty extends LitElement {
           if (selected_buttons.includes(button)) {
             // eslint-disable-next-line no-console
             console.info("Found buttong " + button);
-            if (this._errors.base == "") {
+            if (this._errors.base === "") {
               this._errors.base = "A button can not be selected twice";
             }
             is_valid = false;

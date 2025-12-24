@@ -1,19 +1,18 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
-import { customElement, property, query } from "lit/decorators";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
+import { customElement, property } from "lit/decorators";
 import memoizeOne from "memoize-one";
 import "@ha/components/ha-spinner";
 
 import "@ha/components/data-table/ha-data-table";
 import type {
-  HaDataTable,
   DataTableColumnContainer,
   DataTableRowData,
 } from "@ha/components/data-table/ha-data-table";
-import type { InsteonProperty } from "../../data/insteon";
+import type { InsteonProperty, Insteon } from "../../data/insteon";
 import type { HomeAssistant } from "@ha/types";
 import { computeRTLDirection } from "@ha/common/util/compute_rtl";
 import type { HaFormSchema } from "@ha/components/ha-form/types";
-import { Insteon } from "../../data/insteon";
 
 export interface RecordRowData {
   record?: InsteonProperty;
@@ -128,13 +127,7 @@ export class InsteonPropertiesDataTable extends LitElement {
 
   protected render(): TemplateResult {
     if (this.showWait) {
-      return html`
-        <ha-spinner
-          class="fullwidth"
-          active
-          alt="Loading"
-        ></ha-spinner>
-      `;
+      return html` <ha-spinner class="fullwidth" active alt="Loading"></ha-spinner> `;
     }
     return html`
       <ha-data-table
@@ -153,17 +146,14 @@ export class InsteonPropertiesDataTable extends LitElement {
     value: number | boolean | [number] | [[number]] | [string] | [],
   ) {
     const schema = this.schema[name];
-    if (schema.name == "radio_button_groups") {
+    if (schema.name === "radio_button_groups") {
       return "" + value.length + " groups";
     }
     if (schema.type === "multi_select" && Array.isArray(value)) {
       return value.map((item) => schema.options[item]).join(", ");
     }
     if (schema.type === "select") {
-      const options_dict = schema.options?.reduce(
-        (x, item) => ({ ...x, [item[0]]: item[1] }),
-        {},
-      );
+      const options_dict = schema.options?.reduce((x, item) => ({ ...x, [item[0]]: item[1] }), {});
       return options_dict[value.toString()];
     }
     return value;

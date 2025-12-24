@@ -1,11 +1,12 @@
-import { html, TemplateResult } from "lit";
+import type { TemplateResult } from "lit";
+import { html } from "lit";
 import { customElement, property } from "lit/decorators";
 import { applyThemesOnElement } from "@ha/common/dom/apply_themes_on_element";
 import { navigate } from "@ha/common/navigate";
 import { makeDialogManager } from "@ha/dialogs/make-dialog-manager";
 import "@ha/resources/append-ha-style";
-import { HomeAssistant, Route } from "@ha/types";
-import { LocationChangedEvent } from "./data/common";
+import type { HomeAssistant, Route } from "@ha/types";
+import type { LocationChangedEvent } from "./data/common";
 import { insteonElement } from "./insteon";
 import "./insteon-router";
 
@@ -25,9 +26,9 @@ class InsteonFrontend extends insteonElement {
     if (!this.insteon) {
       this._getInsteonConfigEntry();
     }
-    //this.insteon.language = this.hass.language;
+    // this.insteon.language = this.hass.language;
     this.addEventListener("insteon-location-changed", (e) =>
-      this._setRoute(e as LocationChangedEvent)
+      this._setRoute(e as LocationChangedEvent),
     );
 
     makeDialogManager(this, this.shadowRoot!);

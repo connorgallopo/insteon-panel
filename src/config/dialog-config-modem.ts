@@ -1,18 +1,18 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
-import { HomeAssistant } from "@ha/types";
-import { Insteon } from "../data/insteon";
+import type { HomeAssistant } from "@ha/types";
+import type { Insteon } from "../data/insteon";
 import { updateModemConfig, addPlmManualConfig, modemIsPlm } from "data/config";
 import "@ha/components/ha-form/ha-form";
-import "@ha/components/ha-button"
+import "@ha/components/ha-button";
 import type { HaFormSchema, HaFormSelectSchema } from "@ha/components/ha-form/types";
-import { insteonConfigModemDialogParams } from "./show-dialog-config-modem";
-import "@ha/components/ha-alert"
-import "@ha/components/ha-spinner"
-import "@ha/components/ha-button"
+import type { insteonConfigModemDialogParams } from "./show-dialog-config-modem";
+import "@ha/components/ha-alert";
+import "@ha/components/ha-spinner";
 
 @customElement("dialog-config-modem")
 class DialogInsteonConfigModem extends LitElement {
@@ -48,13 +48,13 @@ class DialogInsteonConfigModem extends LitElement {
     this._schema = params.schema;
     this._formData = params.data;
     if (modemIsPlm(this._formData)) {
-      const ports = this._schema.find(o => o.name == "device") as HaFormSelectSchema;
-      if (ports && ports.options && ports.options.length == 0) {
-        this._formData.manual_config = true
-        this._formData.plm_manual_config = this._formData.device
+      const ports = this._schema.find((o) => o.name === "device") as HaFormSelectSchema;
+      if (ports && ports.options && ports.options.length === 0) {
+        this._formData.manual_config = true;
+        this._formData.plm_manual_config = this._formData.device;
       } else {
-        this._formData.manual_config = false
-        this._formData.plm_manual_config = undefined
+        this._formData.manual_config = false;
+        this._formData.plm_manual_config = undefined;
       }
     }
     this._initConfig = params.data;
@@ -67,13 +67,12 @@ class DialogInsteonConfigModem extends LitElement {
   }
 
   protected render(): TemplateResult {
-    console.info("Rendering config-modem dialog")
     if (!this._opened) {
       return html``;
     }
-    let form_schema: HaFormSchema[] = [...this._schema! ];
+    let form_schema: HaFormSchema[] = [...this._schema!];
     if (modemIsPlm(this._formData)) {
-      form_schema = addPlmManualConfig(this._formData.manual_config!, this._schema!)
+      form_schema = addPlmManualConfig(this._formData.manual_config!, this._schema!);
     }
     return html`
       <ha-dialog
@@ -91,19 +90,19 @@ class DialogInsteonConfigModem extends LitElement {
           ></ha-form>
         </div>
         ${this._saving
-        ? html`
+          ? html`
               <div slot="primaryAction" class="submit-spinner">
                 <ha-spinner active></ha-spinner>
               </div>
             `
-        : html`
+          : html`
         <div class="buttons">
           <ha-button @click=${this._submit} .disabled=${!this._hasChanged} slot="primaryAction">
             ${this.insteon!.localize("common.ok")}
           </ha-button>
         </div>
-      </ha-dialog>`
-      }
+      </ha-dialog>`}
+      </ha-dialog>
     `;
   }
 
@@ -115,17 +114,17 @@ class DialogInsteonConfigModem extends LitElement {
   private async _submit(): Promise<void> {
     try {
       this._saving = true;
-      let config = { ...this._formData }
+      let config = { ...this._formData };
       if (modemIsPlm(config)) {
         if (config.manual_config) {
-          config = { device: config.plm_manual_config! }
+          config = { device: config.plm_manual_config! };
         } else {
-          config = { device: config.device }
+          config = { device: config.device };
         }
       }
       await updateModemConfig(this.hass!, config);
       if (this._callback) {
-        this._callback(true)
+        this._callback(true);
       }
       this._opened = false;
       this._formData = [];
@@ -150,8 +149,8 @@ class DialogInsteonConfigModem extends LitElement {
     this._formData = ev.detail.value;
     this._hasChanged = false;
 
-    for (let key in this._formData) {
-      if (this._formData[key] != this._initConfig[key]) {
+    for (const key in this._formData) {
+      if (this._formData[key] !== this._initConfig[key]) {
         this._hasChanged = true;
         break;
       }

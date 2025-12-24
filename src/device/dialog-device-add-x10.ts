@@ -1,18 +1,18 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import "@ha/components/ha-button";
 import { haStyleDialog } from "@ha/resources/styles";
-import { HomeAssistant } from "@ha/types";
-import { Insteon, InsteonX10Device} from "../data/insteon";
+import type { HomeAssistant } from "@ha/types";
+import type { Insteon, InsteonX10Device } from "../data/insteon";
 import { X10DeviceSchema } from "data/config";
-import { addX10Device } from "data/device"
-import type { HaFormData } from "@ha/components/ha-form/types"
+import { addX10Device } from "data/device";
+import type { HaFormData } from "@ha/components/ha-form/types";
 import "@ha/components/ha-form/ha-form";
-import "@ha/components/ha-alert"
-import { insteonDeviceAddX10DialogParams } from "./show-dialog-device-add-x10";
-
+import "@ha/components/ha-alert";
+import type { insteonDeviceAddX10DialogParams } from "./show-dialog-device-add-x10";
 
 @customElement("dialog-device-add-x10")
 class DialogInsteonDeviceAddX10 extends LitElement {
@@ -46,7 +46,7 @@ class DialogInsteonDeviceAddX10 extends LitElement {
     if (!this._opened) {
       return html``;
     }
-    const schema = X10DeviceSchema(this._formData?.platform)
+    const schema = X10DeviceSchema(this._formData?.platform);
     return html`
       <ha-dialog
         open
@@ -75,7 +75,7 @@ class DialogInsteonDeviceAddX10 extends LitElement {
   }
 
   private _haFormData(): HaFormData {
-    return {...this._formData}
+    return { ...this._formData };
   }
 
   private _dismiss(): void {
@@ -89,9 +89,9 @@ class DialogInsteonDeviceAddX10 extends LitElement {
 
   private async _submit(): Promise<void> {
     const x10_device: InsteonX10Device = {
-      ...this._formData!
-    }
-    if (x10_device.dim_steps == null) {
+      ...this._formData!,
+    };
+    if (x10_device.dim_steps === null) {
       x10_device.dim_steps = 0;
     }
     try {
@@ -99,7 +99,7 @@ class DialogInsteonDeviceAddX10 extends LitElement {
       this._close();
       await this._callback!();
     } catch {
-        this._error  = this.insteon!.localize("device.add_x10.error.duplicate_device");
+      this._error = this.insteon!.localize("device.add_x10.error.duplicate_device");
     }
   }
 
@@ -111,7 +111,7 @@ class DialogInsteonDeviceAddX10 extends LitElement {
 
   private _valueChanged(ev: CustomEvent) {
     this._formData = ev.detail.value;
-    if (this._formData?.platform == "light") {
+    if (this._formData?.platform === "light") {
       if (!this._formData.dim_steps) {
         this._formData.dim_steps = 22;
       }

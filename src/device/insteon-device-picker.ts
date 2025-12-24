@@ -1,33 +1,25 @@
-import { UnsubscribeFunc } from "home-assistant-js-websocket";
-import { html, LitElement, PropertyValues, TemplateResult } from "lit";
-import { ComboBoxLitRenderer } from "@vaadin/combo-box/lit";
+import type { UnsubscribeFunc } from "home-assistant-js-websocket";
+import type { PropertyValues, TemplateResult } from "lit";
+import { html, LitElement } from "lit";
+import type { ComboBoxLitRenderer } from "@vaadin/combo-box/lit";
 import { customElement, property, query, state } from "lit/decorators";
 import memoizeOne from "memoize-one";
 import { fireEvent } from "@ha/common/dom/fire_event";
 import "@ha/components/ha-list-item";
 import { stringCompare } from "@ha/common/string/compare";
-import {
-  AreaRegistryEntry,
-  subscribeAreaRegistry,
-} from "@ha/data/area_registry";
-import {
-  computeDeviceName,
-} from "@ha/common/entity/compute_device_name";
-import {
-  DeviceEntityLookup,
-  DeviceRegistryEntry,
-  subscribeDeviceRegistry,
-} from "@ha/data/device_registry";
-import {
-  EntityRegistryEntry,
-  subscribeEntityRegistry,
-} from "@ha/data/entity_registry";
+import type { AreaRegistryEntry } from "@ha/data/area_registry";
+import { subscribeAreaRegistry } from "@ha/data/area_registry";
+import { computeDeviceName } from "@ha/common/entity/compute_device_name";
+import type { DeviceEntityLookup, DeviceRegistryEntry } from "@ha/data/device_registry";
+import { subscribeDeviceRegistry } from "@ha/data/device_registry";
+import type { EntityRegistryEntry } from "@ha/data/entity_registry";
+import { subscribeEntityRegistry } from "@ha/data/entity_registry";
 import { SubscribeMixin } from "@ha/mixins/subscribe-mixin";
-import { PolymerChangedEvent } from "@ha/polymer-types";
-import { HomeAssistant } from "@ha/types";
+import type { PolymerChangedEvent } from "@ha/polymer-types";
+import type { HomeAssistant } from "@ha/types";
 import "@ha/components/ha-combo-box";
 import type { HaComboBox } from "@ha/components/ha-combo-box";
-import { Insteon } from "../data/insteon";
+import type { Insteon } from "../data/insteon";
 import { computeDomain } from "@ha/common/entity/compute_domain";
 
 interface Device {
@@ -36,16 +28,13 @@ interface Device {
   id: string;
 }
 
-export type HaDevicePickerDeviceFilterFunc = (
-  device: DeviceRegistryEntry
-) => boolean;
+export type HaDevicePickerDeviceFilterFunc = (device: DeviceRegistryEntry) => boolean;
 
-const rowRenderer: ComboBoxLitRenderer<Device> = (item) => html`<ha-list-item
-  .twoline=${!!item.area}
->
-  <span>${item.name}</span>
-  <span slot="secondary">${item.area}</span>
-</ha-list-item>`;
+const rowRenderer: ComboBoxLitRenderer<Device> = (item) =>
+  html`<ha-list-item .twoline=${!!item.area}>
+    <span>${item.name}</span>
+    <span slot="secondary">${item.area}</span>
+  </ha-list-item>`;
 
 @customElement("insteon-device-picker")
 export class InsteonDevicePicker extends SubscribeMixin(LitElement) {
@@ -96,7 +85,7 @@ export class InsteonDevicePicker extends SubscribeMixin(LitElement) {
     (
       devices: DeviceRegistryEntry[],
       areas: AreaRegistryEntry[],
-      entities: EntityRegistryEntry[]
+      entities: EntityRegistryEntry[],
     ): Device[] => {
       if (!devices.length) {
         return [
@@ -112,14 +101,12 @@ export class InsteonDevicePicker extends SubscribeMixin(LitElement) {
 
       const filtered_included_entities = entities.filter(
         (entity) =>
-          !this.includedDomains ||
-          this.includedDomains.includes(computeDomain(entity.entity_id))
+          !this.includedDomains || this.includedDomains.includes(computeDomain(entity.entity_id)),
       );
 
       const filtered_entities = filtered_included_entities.filter(
         (entity) =>
-          !this.excludedDomains ||
-          !this.excludedDomains.includes(computeDomain(entity.entity_id))
+          !this.excludedDomains || !this.excludedDomains.includes(computeDomain(entity.entity_id)),
       );
 
       for (const entity of filtered_entities) {
@@ -141,11 +128,7 @@ export class InsteonDevicePicker extends SubscribeMixin(LitElement) {
         .filter((device) => deviceEntityLookup.hasOwnProperty(device.id))
         .map((device) => ({
           id: device.id,
-          name: computeDeviceName(
-            device,
-            this.hass,
-            deviceEntityLookup[device.id]
-          ),
+          name: computeDeviceName(device, this.hass, deviceEntityLookup[device.id]),
           area:
             device.area_id && areaLookup[device.area_id]
               ? areaLookup[device.area_id].name
@@ -163,10 +146,8 @@ export class InsteonDevicePicker extends SubscribeMixin(LitElement) {
       if (outputDevices.length === 1) {
         return outputDevices;
       }
-      return outputDevices.sort((a, b) =>
-        stringCompare(a.name || "", b.name || "")
-      );
-    }
+      return outputDevices.sort((a, b) => stringCompare(a.name || "", b.name || ""));
+    },
   );
 
   public open() {
@@ -183,10 +164,8 @@ export class InsteonDevicePicker extends SubscribeMixin(LitElement) {
         this.devices = devices.filter(
           (device) =>
             device.config_entries &&
-            device.config_entries.includes(
-              this.insteon.config_entry.entry_id
-            ) &&
-            (!this.excludeModem || !device.model?.includes("(0x03"))
+            device.config_entries.includes(this.insteon.config_entry.entry_id) &&
+            (!this.excludeModem || !device.model?.includes("(0x03")),
         );
       }),
       subscribeAreaRegistry(this.hass.connection!, (areas) => {
@@ -195,8 +174,8 @@ export class InsteonDevicePicker extends SubscribeMixin(LitElement) {
       subscribeEntityRegistry(this.hass.connection!, (entities) => {
         this.entities = entities.filter(
           (entity) =>
-            entity.entity_category == null &&
-            entity.config_entry_id == this.insteon.config_entry.entry_id
+            entity.entity_category === null &&
+            entity.config_entry_id === this.insteon.config_entry.entry_id,
         );
       }),
     ];
@@ -208,11 +187,7 @@ export class InsteonDevicePicker extends SubscribeMixin(LitElement) {
       (changedProps.has("_opened") && this._opened)
     ) {
       this._init = true;
-      (this.comboBox as any).items = this._getDevices(
-        this.devices!,
-        this.areas!,
-        this.entities!
-      );
+      (this.comboBox as any).items = this._getDevices(this.devices!, this.areas!, this.entities!);
     }
   }
 

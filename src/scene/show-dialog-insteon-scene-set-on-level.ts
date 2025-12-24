@@ -1,5 +1,5 @@
 import { fireEvent } from "@ha/common/dom/fire_event";
-import { Insteon } from "../data/insteon";
+import type { Insteon } from "../data/insteon";
 import type { HomeAssistant } from "@ha/types";
 
 export interface InsteonSetOnLevelDialogParams {
@@ -10,12 +10,7 @@ export interface InsteonSetOnLevelDialogParams {
   group: number;
   value: number;
   ramp_rate: number;
-  callback: (
-    address: string,
-    group: number,
-    value: number,
-    ramp_rate: number
-  ) => Promise<void>;
+  callback: (address: string, group: number, value: number, ramp_rate: number) => Promise<void>;
 }
 
 export const loadInsteonSetOnLevelDialog = () =>
@@ -25,7 +20,7 @@ export const loadInsteonSetOnLevelDialog = () =>
 
 export const showInsteonSetOnLevelDialog = (
   element: HTMLElement,
-  insteonSetOnLevelDialogParams: InsteonSetOnLevelDialogParams
+  insteonSetOnLevelDialogParams: InsteonSetOnLevelDialogParams,
 ): void => {
   fireEvent(element, "show-dialog", {
     dialogTag: "dialog-insteon-scene-set-on-level",

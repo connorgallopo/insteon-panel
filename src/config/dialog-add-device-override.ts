@@ -1,18 +1,16 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
-import { HomeAssistant } from "@ha/types";
-import { Insteon } from "../data/insteon";
-import {
-  addDeviceOverride,
-  DeviceOverrideSchema,
-  InsteonDeviceOverride,
-} from "data/config";
+import type { HomeAssistant } from "@ha/types";
+import type { Insteon } from "../data/insteon";
+import type { InsteonDeviceOverride } from "data/config";
+import { addDeviceOverride, DeviceOverrideSchema } from "data/config";
 import "@ha/components/ha-form/ha-form";
 import "@ha/components/ha-button";
-import { AddDeviceOverrideDialogParams } from "./show-dialog-add-device-override";
+import type { AddDeviceOverrideDialogParams } from "./show-dialog-add-device-override";
 import "@ha/components/ha-alert";
 import "@ha/components/ha-spinner";
 import { checkAddress, checkHexNumber } from "../tools/address-utils";
@@ -39,9 +37,7 @@ class DialogAddDeviceOverride extends LitElement {
 
   @state() private _opened = false;
 
-  public async showDialog(
-    params: AddDeviceOverrideDialogParams,
-  ): Promise<void> {
+  public async showDialog(params: AddDeviceOverrideDialogParams): Promise<void> {
     this.hass = params.hass;
     this.insteon = params.insteon;
     this._formData = undefined;
@@ -53,7 +49,6 @@ class DialogAddDeviceOverride extends LitElement {
   }
 
   protected render(): TemplateResult {
-    console.info("Rendering config-modem dialog");
     if (!this._opened) {
       return html``;
     }
@@ -63,9 +58,7 @@ class DialogAddDeviceOverride extends LitElement {
         @closed="${this._close}"
         .heading=${createCloseHeading(this.hass!, String(this._title))}
       >
-        ${this._error
-          ? html`<ha-alert alertType="error">${this._error}</ha-alert>`
-          : ""}
+        ${this._error ? html`<ha-alert alertType="error">${this._error}</ha-alert>` : ""}
         <div class="form">
           <ha-form
             .data=${this._formData}
@@ -94,17 +87,16 @@ class DialogAddDeviceOverride extends LitElement {
   private _computeLabel(localize) {
     // Returns a callback for ha-form to calculate labels per schema object
     return (schema) =>
-      localize("utils.config_device_overrides.fields." + schema.name) ||
-      schema.name;
+      localize("utils.config_device_overrides.fields." + schema.name) || schema.name;
   }
 
   private async _submit(): Promise<void> {
     try {
       this._saving = true;
       if (!(this._formData?.address && this._formData.cat && this._formData.subcat)) {
-        this._error = this.insteon?.localize("common.error.")
+        this._error = this.insteon?.localize("common.error.");
       }
-      let override = {
+      const override = {
         address: String(this._formData?.address),
         cat: String(this._formData?.cat),
         subcat: String(this._formData?.subcat),
@@ -125,21 +117,15 @@ class DialogAddDeviceOverride extends LitElement {
 
   private _checkData(config: InsteonDeviceOverride) {
     if (!checkAddress(config.address)) {
-      this._error = this.insteon?.localize(
-        "utils.config_device_overrides.errors.invalid_address",
-      );
+      this._error = this.insteon?.localize("utils.config_device_overrides.errors.invalid_address");
       return false;
     }
     if (!checkHexNumber(String(config.cat))) {
-      this._error = this.insteon?.localize(
-        "utils.config_device_overrides.errors.invalid_cat",
-      );
+      this._error = this.insteon?.localize("utils.config_device_overrides.errors.invalid_cat");
       return false;
     }
     if (!checkHexNumber(String(config.subcat))) {
-      this._error = this.insteon?.localize(
-        "utils.config_device_overrides.errors.invalid_subcat",
-      );
+      this._error = this.insteon?.localize("utils.config_device_overrides.errors.invalid_subcat");
       return false;
     }
     return true;

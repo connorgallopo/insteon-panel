@@ -1,26 +1,27 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
 import { createCloseHeading } from "@ha/components/ha-dialog";
-import "@ha/components/ha-alert"
+import "@ha/components/ha-alert";
 import { haStyleDialog } from "@ha/resources/styles";
-import { HomeAssistant } from "@ha/types";
+import type { HomeAssistant } from "@ha/types";
 import "@ha/components/ha-button";
-import { Insteon } from "../data/insteon";
+import type { Insteon } from "../data/insteon";
 import "@ha/components/ha-form/ha-form";
 import type { HaFormSchema } from "@ha/components/ha-form/types";
-import { checkAddress } from "../tools/address-utils"
+import { checkAddress } from "../tools/address-utils";
 import { showConfirmationDialog } from "@ha/dialogs/generic/show-dialog-box";
-import { removeInsteonDevice } from "../data/device"
-import { insteonDeleteDeviceDialogParams } from "./show-dialog-delete-device"
+import { removeInsteonDevice } from "../data/device";
+import type { insteonDeleteDeviceDialogParams } from "./show-dialog-delete-device";
 
 const AddressSchema: HaFormSchema[] = [
   {
     name: "address",
     type: "string",
-    required: true
-  }
-]
+    required: true,
+  },
+];
 
 @customElement("dialog-delete-device")
 class DialogDeleteDevice extends LitElement {
@@ -61,7 +62,7 @@ class DialogDeleteDevice extends LitElement {
         .heading=${createCloseHeading(this.hass, this._title!)}
       >
         <div class="form">
-          ${this._error ? html`<ha-alert>${this._error}</ha-alert>`: ""}
+          ${this._error ? html`<ha-alert>${this._error}</ha-alert>` : ""}
           <ha-form
             .data=${this._formData}
             .schema=${AddressSchema}
@@ -86,12 +87,12 @@ class DialogDeleteDevice extends LitElement {
 
   private async _submit(): Promise<void> {
     if (!checkAddress(this._formData.address!)) {
-      this._error = this.insteon.localize("common.error.address")
+      this._error = this.insteon.localize("common.error.address");
       return;
     }
-    const address = this._formData.address!
+    const address = this._formData.address!;
     this._opened = false;
-    await this._confirmDeleteScope(address)
+    await this._confirmDeleteScope(address);
     if (this._callback) {
       this._callback(address);
     }
@@ -109,9 +110,8 @@ class DialogDeleteDevice extends LitElement {
     }
     const remove_all_refs = await showConfirmationDialog(this, {
       title: this.insteon.localize("device.remove_all_refs.title"),
-      text: html`
-        ${this.insteon.localize("device.remove_all_refs.description")}<br><br>
-        ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br>
+      text: html` ${this.insteon.localize("device.remove_all_refs.description")}<br /><br />
+        ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br />
         ${this.insteon.localize("device.remove_all_refs.dismiss_description")}`,
       confirmText: this.insteon!.localize("common.yes"),
       dismissText: this.insteon!.localize("common.no"),

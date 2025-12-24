@@ -1,5 +1,5 @@
 import { fireEvent } from "@ha/common/dom/fire_event";
-import { Insteon } from "../data/insteon";
+import type { Insteon } from "../data/insteon";
 import type { HomeAssistant } from "@ha/types";
 
 export interface insteonDeleteDeviceDialogParams {
@@ -10,9 +10,7 @@ export interface insteonDeleteDeviceDialogParams {
 }
 
 export const loadInsteonDeleteDevice = () =>
-  import(
-    /* webpackChunkName: "dialog-delete-device" */ "./dialog-delete-device"
-  );
+  import(/* webpackChunkName: "dialog-delete-device" */ "./dialog-delete-device");
 
 export const showDeleteDeviceDialog = (
   element: HTMLElement,

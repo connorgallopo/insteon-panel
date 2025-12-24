@@ -1,12 +1,15 @@
-import { html, LitElement, TemplateResult } from "lit";
+import type { TemplateResult } from "lit";
+import { html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators";
 import memoizeOne from "memoize-one";
 import "@ha/components/ha-spinner";
-import "@ha/components/data-table/ha-data-table";
-import { DataTableColumnContainer, DataTableRowData } from "@ha/components/data-table/ha-data-table";
-import { Insteon } from "../../data/insteon";
-import { ALDBRecord } from "../../data/device";
-import { HomeAssistant } from "@ha/types";
+import type {
+  DataTableColumnContainer,
+  DataTableRowData,
+} from "@ha/components/data-table/ha-data-table";
+import type { Insteon } from "../../data/insteon";
+import type { ALDBRecord } from "../../data/device";
+import type { HomeAssistant } from "@ha/types";
 import { computeRTLDirection } from "@ha/common/util/compute_rtl";
 
 export interface RecordRowData extends ALDBRecord {
@@ -159,9 +162,7 @@ export class InsteonALDBDataTable extends LitElement {
 
   protected render(): TemplateResult {
     if (this.showWait) {
-      return html`
-        <ha-spinner active alt="Loading"></ha-spinner>
-      `;
+      return html` <ha-spinner active alt="Loading"></ha-spinner> `;
     }
     return html`
       <ha-data-table

@@ -1,6 +1,5 @@
-import { HomeAssistant } from "@ha/types";
+import type { HomeAssistant } from "@ha/types";
 import type { HaFormSchema } from "@ha/components/ha-form/types";
-
 
 export interface InsteonScene {
   name: string;
@@ -32,17 +31,12 @@ export interface InsteonSceneLinkData {
   data3: number;
 }
 
-export const fetchInsteonScenes = (
-  hass: HomeAssistant
-): Promise<InsteonScenes> =>
+export const fetchInsteonScenes = (hass: HomeAssistant): Promise<InsteonScenes> =>
   hass.callWS({
     type: "insteon/scenes/get",
   });
 
-export const fetchInsteonScene = (
-  hass: HomeAssistant,
-  id: number
-): Promise<InsteonScene> =>
+export const fetchInsteonScene = (hass: HomeAssistant, id: number): Promise<InsteonScene> =>
   hass.callWS({
     type: "insteon/scene/get",
     scene_id: id,
@@ -52,7 +46,7 @@ export const saveInsteonScene = (
   hass: HomeAssistant,
   scene_id: number,
   links: InsteonSceneLinkData[],
-  scene_name: string
+  scene_name: string,
 ): Promise<SceneSaveResult> =>
   hass.callWS({
     type: "insteon/scene/save",
@@ -63,7 +57,7 @@ export const saveInsteonScene = (
 
 export const deleteInsteonScene = (
   hass: HomeAssistant,
-  scene_id: number
+  scene_id: number,
 ): Promise<SceneSaveResult> =>
   hass.callWS({
     type: "insteon/scene/delete",

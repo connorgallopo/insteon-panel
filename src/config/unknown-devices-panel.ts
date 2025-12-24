@@ -1,28 +1,25 @@
-import {mdiInformationOutline } from "@mdi/js";
-import { LitElement, html, TemplateResult } from "lit";
+import { mdiInformationOutline } from "@mdi/js";
+import type { TemplateResult } from "lit";
+import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import memoizeOne from "memoize-one";
-import { DataTableRowData, DataTableColumnContainer } from "@ha/components/data-table/ha-data-table";
-import "@ha/layouts/hass-tabs-subpage-data-table"
-import "@ha/components/data-table/ha-data-table";
+import type {
+  DataTableRowData,
+  DataTableColumnContainer,
+} from "@ha/components/data-table/ha-data-table";
+import "@ha/layouts/hass-tabs-subpage-data-table";
 import "@ha/components/ha-fab";
 import "@ha/components/ha-card";
 import "@ha/components/ha-button-menu";
-import "@ha/layouts/hass-tabs-subpage-data-table";
-import { HomeAssistant } from "@ha/types";
-import { Insteon } from "../data/insteon";
-import {
-  fetchUnknownDevices,
-} from "../data/config";
+import type { HomeAssistant } from "@ha/types";
+import type { Insteon } from "../data/insteon";
+import { fetchUnknownDevices } from "../data/config";
 import { navigate } from "@ha/common/navigate";
-import "@ha/components/ha-fab";
 import { showConfirmationDialog } from "@ha/dialogs/generic/show-dialog-box";
-import "@ha/components/ha-button-menu";
 import "@ha/components/ha-icon-button";
 import "@ha/components/ha-icon-overflow-menu";
 import { removeInsteonDevice } from "../data/device";
 import { showInsteonAddingDeviceDialog } from "../device/show-dialog-adding-device";
-
 
 interface UnknownDeviceRowData extends DataTableRowData {
   address: string;
@@ -73,46 +70,43 @@ export class UnknownDevicesPanel extends LitElement {
         width: this.narrow ? undefined : "5%",
         type: "overflow-menu",
         template: (record) => html`
-        <ha-icon-overflow-menu
-          .hass=${this.hass}
-          narrow
-          .items=${[
-            {
-              path: mdiInformationOutline,
-              label: this.insteon.localize("utils.unknown_devices.actions.discover"),
-              action: () => this._handleDiscoverDevice(record),
-            },
-            {
-              path: mdiInformationOutline,
-              label: this.insteon.localize("utils.unknown_devices.actions.delete"),
-              action: () => this._handleDeleteDevice(record),
-            },
-          ]}
-        >
-        </ha-icon-overflow-menu>
-      `,
-      }
-    }
+          <ha-icon-overflow-menu
+            .hass=${this.hass}
+            narrow
+            .items=${[
+              {
+                path: mdiInformationOutline,
+                label: this.insteon.localize("utils.unknown_devices.actions.discover"),
+                action: () => this._handleDiscoverDevice(record),
+              },
+              {
+                path: mdiInformationOutline,
+                label: this.insteon.localize("utils.unknown_devices.actions.delete"),
+                action: () => this._handleDeleteDevice(record),
+              },
+            ]}
+          >
+          </ha-icon-overflow-menu>
+        `,
+      },
+    };
     return columns;
   });
 
-  private _insteonUnknownDevices = memoizeOne(
-    (unknown_devices: string[]) => {
-      if (!unknown_devices || this._any_aldb_status_loading) {
-        return [];
-      }
-      const unknown_device_list: UnknownDeviceRowData[] = unknown_devices.map((unknown_device) => {
-        const linkRowData: UnknownDeviceRowData = {
-          address: unknown_device,
-        };
-        return linkRowData;
-      });
-      return unknown_device_list;
-    },
-  );
+  private _insteonUnknownDevices = memoizeOne((unknown_devices: string[]) => {
+    if (!unknown_devices || this._any_aldb_status_loading) {
+      return [];
+    }
+    const unknown_device_list: UnknownDeviceRowData[] = unknown_devices.map((unknown_device) => {
+      const linkRowData: UnknownDeviceRowData = {
+        address: unknown_device,
+      };
+      return linkRowData;
+    });
+    return unknown_device_list;
+  });
 
   private async _handleDiscoverDevice(record: UnknownDeviceRowData) {
-
     showInsteonAddingDeviceDialog(this, {
       hass: this.hass,
       insteon: this.insteon,
@@ -121,7 +115,7 @@ export class UnknownDevicesPanel extends LitElement {
       title: this.insteon.localize("devices.adding_device"),
     });
 
-    await this._getUnknownDevices()
+    await this._getUnknownDevices();
   }
 
   private async _handleDeleteDevice(record: UnknownDeviceRowData) {
@@ -137,9 +131,8 @@ export class UnknownDevicesPanel extends LitElement {
     }
     const remove_all_refs = await showConfirmationDialog(this, {
       title: this.insteon.localize("device.remove_all_refs.title"),
-      text: html`
-        ${this.insteon.localize("device.remove_all_refs.description")}<br><br>
-        ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br>
+      text: html` ${this.insteon.localize("device.remove_all_refs.description")}<br /><br />
+        ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br />
         ${this.insteon.localize("device.remove_all_refs.dismiss_description")}`,
       confirmText: this.insteon!.localize("common.yes"),
       dismissText: this.insteon!.localize("common.no"),
@@ -147,7 +140,7 @@ export class UnknownDevicesPanel extends LitElement {
       destructive: true,
     });
     await removeInsteonDevice(this.hass, address, remove_all_refs);
-    await this._getUnknownDevices()
+    await this._getUnknownDevices();
   }
 
   protected render(): TemplateResult | void {
@@ -166,7 +159,9 @@ export class UnknownDevicesPanel extends LitElement {
             path: `/insteon`,
           },
         ]}
-        .noDataText=${this._any_aldb_status_loading ? this.insteon.localize("utils.aldb_loading_long") : undefined}
+        .noDataText=${this._any_aldb_status_loading
+          ? this.insteon.localize("utils.aldb_loading_long")
+          : undefined}
         backPath="/insteon/utils"
       >
       </hass-tabs-subpage-data-table>
@@ -177,7 +172,7 @@ export class UnknownDevicesPanel extends LitElement {
     if (message.type === "status") {
       this._any_aldb_status_loading = message.is_loading;
       if (!this._any_aldb_status_loading) {
-        this._getUnknownDevices()
+        this._getUnknownDevices();
       }
     }
   }
@@ -199,13 +194,10 @@ export class UnknownDevicesPanel extends LitElement {
     this._subscribed = this.hass.connection.subscribeMessage(
       (message) => this._handleMessage(message),
       {
-        type: "insteon/aldb/notify_all"
+        type: "insteon/aldb/notify_all",
       },
     );
-    this._refreshDevicesTimeoutHandle = window.setTimeout(
-      () => this._unsubscribe(),
-      1200000,
-    );
+    this._refreshDevicesTimeoutHandle = window.setTimeout(() => this._unsubscribe(), 1200000);
   }
 }
 

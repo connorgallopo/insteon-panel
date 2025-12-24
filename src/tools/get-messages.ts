@@ -1,6 +1,6 @@
 import memoizeOne from "memoize-one";
-import { Message, Repository } from "../data/common";
-import { Insteon } from "../data/insteon";
+import type { Message, Repository } from "../data/common";
+import type { Insteon } from "../data/insteon";
 import { addedToLovelace } from "./added-to-lovelace";
 
 export const getMessages = memoizeOne((insteon: Insteon): Message[] => {
@@ -50,10 +50,10 @@ export const getMessages = memoizeOne((insteon: Insteon): Message[] => {
       {
         name: insteon.localize("entry.messages.disabled.title"),
         secondary: insteon.localize(
-          `entry.messages.disabled.${insteon.status?.disabled_reason}.title`
+          `entry.messages.disabled.${insteon.status?.disabled_reason}.title`,
         ),
         info: insteon.localize(
-          `entry.messages.disabled.${insteon.status?.disabled_reason}.description`
+          `entry.messages.disabled.${insteon.status?.disabled_reason}.description`,
         ),
         severity: "error",
       },

@@ -1,8 +1,7 @@
-import { HomeAssistant } from "@ha/types";
+import type { HomeAssistant } from "@ha/types";
 import type { HaFormSchema } from "@ha/components/ha-form/types";
-import { Insteon, InsteonDevice, InsteonX10Device} from "./insteon"
-import { ConfigUpdateStatus } from "./config"
-
+import type { Insteon, InsteonDevice, InsteonX10Device } from "./insteon";
+import type { ConfigUpdateStatus } from "./config";
 
 export type InsteonProperty =
   | PropertyNumber
@@ -56,19 +55,13 @@ export interface ALDBRecord {
   dirty: boolean;
 }
 
-export const fetchInsteonDevice = (
-  hass: HomeAssistant,
-  id: string
-): Promise<InsteonDevice> =>
+export const fetchInsteonDevice = (hass: HomeAssistant, id: string): Promise<InsteonDevice> =>
   hass.callWS({
     type: "insteon/device/get",
     device_id: id,
   });
 
-export const fetchInsteonALDB = (
-  hass: HomeAssistant,
-  id: string
-): Promise<ALDBRecord[]> =>
+export const fetchInsteonALDB = (hass: HomeAssistant, id: string): Promise<ALDBRecord[]> =>
   hass.callWS({
     type: "insteon/aldb/get",
     device_address: id,
@@ -77,7 +70,7 @@ export const fetchInsteonALDB = (
 export const fetchInsteonProperties = (
   hass: HomeAssistant,
   id: string,
-  showAdvanced: boolean
+  showAdvanced: boolean,
 ): Promise<PropertiesInfo> =>
   hass.callWS({
     type: "insteon/properties/get",
@@ -88,7 +81,7 @@ export const fetchInsteonProperties = (
 export const changeALDBRecord = (
   hass: HomeAssistant,
   id: string,
-  record: ALDBRecord
+  record: ALDBRecord,
 ): Promise<void> =>
   hass.callWS({
     type: "insteon/aldb/change",
@@ -100,7 +93,7 @@ export const changeProperty = (
   hass: HomeAssistant,
   id: string,
   name: string,
-  value: any
+  value: any,
 ): Promise<void> =>
   hass.callWS({
     type: "insteon/properties/change",
@@ -112,7 +105,7 @@ export const changeProperty = (
 export const createALDBRecord = (
   hass: HomeAssistant,
   id: string,
-  record: ALDBRecord
+  record: ALDBRecord,
 ): Promise<void> =>
   hass.callWS({
     type: "insteon/aldb/create",
@@ -126,10 +119,7 @@ export const loadALDB = (hass: HomeAssistant, id: string): Promise<void> =>
     device_address: id,
   });
 
-export const loadProperties = (
-  hass: HomeAssistant,
-  id: string
-): Promise<void> =>
+export const loadProperties = (hass: HomeAssistant, id: string): Promise<void> =>
   hass.callWS({
     type: "insteon/properties/load",
     device_address: id,
@@ -141,10 +131,7 @@ export const writeALDB = (hass: HomeAssistant, id: string): Promise<void> =>
     device_address: id,
   });
 
-export const writeProperties = (
-  hass: HomeAssistant,
-  id: string
-): Promise<void> =>
+export const writeProperties = (hass: HomeAssistant, id: string): Promise<void> =>
   hass.callWS({
     type: "insteon/properties/write",
     device_address: id,
@@ -156,28 +143,19 @@ export const resetALDB = (hass: HomeAssistant, id: string): Promise<void> =>
     device_address: id,
   });
 
-export const resetProperties = (
-  hass: HomeAssistant,
-  id: string
-): Promise<void> =>
+export const resetProperties = (hass: HomeAssistant, id: string): Promise<void> =>
   hass.callWS({
     type: "insteon/properties/reset",
     device_address: id,
   });
 
-export const addDefaultLinks = (
-  hass: HomeAssistant,
-  id: string
-): Promise<void> =>
+export const addDefaultLinks = (hass: HomeAssistant, id: string): Promise<void> =>
   hass.callWS({
     type: "insteon/aldb/add_default_links",
     device_address: id,
   });
 
-export const aldbRecordLoaded = (
-  hass: HomeAssistant,
-  id: string
-): Promise<void> =>
+export const aldbRecordLoaded = (hass: HomeAssistant, id: string): Promise<void> =>
   hass.callWS({
     type: "insteon/aldb/record_loaded",
     device_address: id,
@@ -251,7 +229,7 @@ export const addDeviceSchema = (multiple: boolean, add_x10: boolean): HaFormSche
   {
     name: "device_address",
     required: false,
-    type: (multiple || add_x10) ? "constant": "string",
+    type: multiple || add_x10 ? "constant" : "string",
   },
 ];
 
@@ -263,14 +241,13 @@ export const cancelAddInsteonDevice = (hass: HomeAssistant): Promise<void> =>
 export const removeInsteonDevice = (
   hass: HomeAssistant,
   address: string,
-  remove_all_refs: boolean
+  remove_all_refs: boolean,
 ): Promise<void> =>
   hass.callWS({
     type: "insteon/device/remove",
     device_address: address,
     remove_all_refs: remove_all_refs,
   });
-
 
 export const addX10Device = (
   hass: HomeAssistant,
@@ -280,7 +257,6 @@ export const addX10Device = (
     type: "insteon/device/add_x10",
     x10_device: x10_device,
   });
-
 
 export type deviceAddedMessage = {
   type: string;

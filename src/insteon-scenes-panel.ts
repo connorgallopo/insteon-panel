@@ -1,9 +1,9 @@
 import { mdiPlus, mdiLightbulbGroup, mdiLightbulbGroupOff } from "@mdi/js";
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators";
 import memoizeOne from "memoize-one";
-import "@ha/components/data-table/ha-data-table";
-import {
+import type {
   DataTableRowData,
   RowClickedEvent,
   SelectionChangedEvent,
@@ -11,11 +11,12 @@ import {
 } from "@ha/components/data-table/ha-data-table";
 import "@ha/layouts/hass-tabs-subpage-data-table";
 import { haStyle } from "@ha/resources/styles";
-import { HomeAssistant, Route } from "@ha/types";
-import { Insteon } from "./data/insteon";
-import { InsteonScene, InsteonScenes, fetchInsteonScenes } from "./data/scene";
+import type { HomeAssistant, Route } from "@ha/types";
+import type { Insteon } from "./data/insteon";
+import type { InsteonScene, InsteonScenes } from "./data/scene";
+import { fetchInsteonScenes } from "./data/scene";
 import { navigate } from "@ha/common/navigate";
-import { HASSDomEvent } from "@ha/common/dom/fire_event";
+import type { HASSDomEvent } from "@ha/common/dom/fire_event";
 import { insteonMainTabs } from "./insteon-router";
 import "@ha/components/ha-fab";
 
@@ -120,18 +121,14 @@ export class InsteonScenesPanel extends LitElement {
               <ha-icon-button
                 .scene=${scene}
                 .hass=${this.hass}
-                .label=${this.hass.localize(
-                  "ui.panel.config.scene.picker.activate_scene",
-                )}
+                .label=${this.hass.localize("ui.panel.config.scene.picker.activate_scene")}
                 .path=${mdiLightbulbGroup}
                 @click=${this._activateScene}
               ></ha-icon-button>
               <ha-icon-button
                 .scene=${scene}
                 .hass=${this.hass}
-                .label=${this.hass.localize(
-                  "ui.panel.config.scene.picker.activate_scene",
-                )}
+                .label=${this.hass.localize("ui.panel.config.scene.picker.activate_scene")}
                 .path=${mdiLightbulbGroupOff}
                 @click=${this._deactivateScene}
               ></ha-icon-button>
@@ -160,7 +157,7 @@ export class InsteonScenesPanel extends LitElement {
   }
 
   private _records = memoizeOne((scenes: InsteonScenes): DataTableRowData[] => {
-    if (Object.keys(scenes).length == 0) {
+    if (Object.keys(scenes).length === 0) {
       return [];
     }
     const outputScenes: SceneRowData[] = [];
@@ -209,9 +206,7 @@ export class InsteonScenesPanel extends LitElement {
     navigate("/insteon/scene/");
   }
 
-  private async _handleRowClicked(
-    ev: HASSDomEvent<RowClickedEvent>,
-  ): Promise<void> {
+  private async _handleRowClicked(ev: HASSDomEvent<RowClickedEvent>): Promise<void> {
     const id = ev.detail.id;
     // eslint-disable-next-line no-console
     console.info("Row clicked received: " + id);

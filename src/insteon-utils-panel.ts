@@ -1,30 +1,33 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/layouts/hass-tabs-subpage";
 import "@ha/components/ha-button";
 import { haStyle } from "@ha/resources/styles";
-import { HomeAssistant, Route } from "@ha/types";
-import { Insteon } from "./data/insteon";
+import type { HomeAssistant, Route } from "@ha/types";
+import type { Insteon } from "./data/insteon";
 import { insteonMainTabs } from "./insteon-router";
 import "@ha/components/ha-fab";
 import "./insteon-utils-card";
 import { mdiWrench, mdiCog, mdiDevices } from "@mdi/js";
 import "@ha/components/ha-svg-icon";
+import type {
+  InsteonModemConfig,
+  InsteonDeviceOverride,
+  BrokenLink,
+  UnknownDevice,
+} from "./data/config";
 import {
   fetchInsteonConfig,
   fetchModemConfigSchema,
   fetchBrokenLinks,
   fetchUnknownDevices,
-  InsteonModemConfig,
-  InsteonDeviceOverride,
   modemIsPlm,
-  BrokenLink,
-  UnknownDevice,
 } from "./data/config";
 import { showConfigModemDialog } from "./config/show-dialog-config-modem";
 import { showDeleteDeviceDialog } from "./config/show-dialog-delete-device";
 import { showAlertDialog } from "@ha/dialogs/generic/show-dialog-box";
-import { HaFormDataContainer } from "@ha/components/ha-form/types";
+import type { HaFormDataContainer } from "@ha/components/ha-form/types";
 
 @customElement("insteon-utils-panel")
 export class InsteonUtilsPanel extends LitElement {
@@ -64,19 +67,11 @@ export class InsteonUtilsPanel extends LitElement {
       this._modem_config = config.modem_config;
       this._device_overrides = config.override_config ? config.override_config : [];
       if (modemIsPlm(this._modem_config)) {
-        this._modem_type_text = this.insteon.localize(
-          "utils.config_modem.modem_type.plm",
-        );
+        this._modem_type_text = this.insteon.localize("utils.config_modem.modem_type.plm");
+      } else if (this._modem_config.hub_version === 2) {
+        this._modem_type_text = this.insteon.localize("utils.config_modem.modem_type.hubv2");
       } else {
-        if (this._modem_config.hub_version == 2) {
-          this._modem_type_text = this.insteon.localize(
-            "utils.config_modem.modem_type.hubv2",
-          );
-        } else {
-          this._modem_type_text = this.insteon.localize(
-            "utils.config_modem.modem_type.hubv1",
-          );
-        }
+        this._modem_type_text = this.insteon.localize("utils.config_modem.modem_type.hubv1");
       }
     });
     this._subscribe();
@@ -88,13 +83,10 @@ export class InsteonUtilsPanel extends LitElement {
   }
 
   private _broken_links_action(loading_status: boolean, broken_links_count: number) {
-
     return loading_status
-    ? this.insteon.localize("utils.aldb_loading_short")
-    : broken_links_count
-        ? this.insteon.localize("utils.broken_links.caption") +
-          ": " +
-          broken_links_count
+      ? this.insteon.localize("utils.aldb_loading_short")
+      : broken_links_count
+        ? this.insteon.localize("utils.broken_links.caption") + ": " + broken_links_count
         : undefined;
   }
 
@@ -109,13 +101,13 @@ export class InsteonUtilsPanel extends LitElement {
         this._device_overrides.length
       : undefined;
 
-    const unknown_devices_action =  this._any_aldb_status_loading
-    ? this.insteon.localize("utils.aldb_loading_short")
-    : this._unknown_devices.length
-      ? this.insteon.localize("utils.unknown_devices.caption") +
-        ": " +
-        this._unknown_devices.length
-      : undefined;
+    const unknown_devices_action = this._any_aldb_status_loading
+      ? this.insteon.localize("utils.aldb_loading_short")
+      : this._unknown_devices.length
+        ? this.insteon.localize("utils.unknown_devices.caption") +
+          ": " +
+          this._unknown_devices.length
+        : undefined;
 
     return html`
       <hass-tabs-subpage
@@ -140,9 +132,7 @@ export class InsteonUtilsPanel extends LitElement {
           </insteon-utils-card>
           <insteon-utils-card
             .hass=${this.hass}
-            .title=${this.insteon.localize(
-              "utils.config_device_overrides.caption",
-            )}
+            .title=${this.insteon.localize("utils.config_device_overrides.caption")}
             .action_text=${override_action}
             .action_url=${"/insteon/device_overrides"}
           >
@@ -159,7 +149,10 @@ export class InsteonUtilsPanel extends LitElement {
           <insteon-utils-card
             .hass=${this.hass}
             .title=${this.insteon.localize("utils.broken_links.caption")}
-            .action_text=${this._broken_links_action(this._any_aldb_status_loading, this._broken_links.length)}
+            .action_text=${this._broken_links_action(
+              this._any_aldb_status_loading,
+              this._broken_links.length,
+            )}
             .action_url=${"/insteon/broken_links"}
           >
             <ha-svg-icon slot="icon" .path=${mdiDevices}></ha-svg-icon>
@@ -170,7 +163,7 @@ export class InsteonUtilsPanel extends LitElement {
   }
 
   private async _showModemConfigDialog(error: string | undefined = undefined) {
-    let schema = await fetchModemConfigSchema(this.hass);
+    const schema = await fetchModemConfigSchema(this.hass);
     showConfigModemDialog(this, {
       hass: this.hass,
       insteon: this.insteon,
@@ -183,7 +176,7 @@ export class InsteonUtilsPanel extends LitElement {
   }
 
   private _configData(): HaFormDataContainer {
-    return { ...this._modem_config }
+    return { ...this._modem_config };
   }
 
   private async _handleModemConfigChange(): Promise<void> {
@@ -339,10 +332,10 @@ export class InsteonUtilsPanel extends LitElement {
       this._any_aldb_status_loading = message.is_loading;
       if (!this._any_aldb_status_loading) {
         fetchBrokenLinks(this.hass).then((broken_links) => {
-          this._broken_links = broken_links ? broken_links : []
+          this._broken_links = broken_links || [];
         });
         fetchUnknownDevices(this.hass).then((unknown_devices) => {
-          this._unknown_devices = unknown_devices ? unknown_devices : []
+          this._unknown_devices = unknown_devices || [];
         });
       }
     }
@@ -365,13 +358,10 @@ export class InsteonUtilsPanel extends LitElement {
     this._subscribed = this.hass.connection.subscribeMessage(
       (message) => this._handleMessage(message),
       {
-        type: "insteon/aldb/notify_all"
+        type: "insteon/aldb/notify_all",
       },
     );
-    this._refreshDevicesTimeoutHandle = window.setTimeout(
-      () => this._unsubscribe(),
-      1200000,
-    );
+    this._refreshDevicesTimeoutHandle = window.setTimeout(() => this._unsubscribe(), 1200000);
   }
 }
 

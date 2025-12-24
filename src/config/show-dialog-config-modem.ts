@@ -1,7 +1,7 @@
 import { fireEvent } from "@ha/common/dom/fire_event";
-import { Insteon } from "../data/insteon";
+import type { Insteon } from "../data/insteon";
 import type { HomeAssistant } from "@ha/types";
-import { HaFormSchema, HaFormDataContainer } from "@ha/components/ha-form/types";
+import type { HaFormSchema, HaFormDataContainer } from "@ha/components/ha-form/types";
 
 export interface insteonConfigModemDialogParams {
   hass: HomeAssistant;
@@ -18,7 +18,7 @@ export const loadInsteonConfigModem = () =>
 
 export const showConfigModemDialog = (
   element: HTMLElement,
-  insteonConfigModemDialogParams: insteonConfigModemDialogParams
+  insteonConfigModemDialogParams: insteonConfigModemDialogParams,
 ): void => {
   fireEvent(element, "show-dialog", {
     dialogTag: "dialog-config-modem",

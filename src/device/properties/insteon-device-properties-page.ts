@@ -1,24 +1,14 @@
 import { mdiDotsVertical } from "@mdi/js";
 import type { CSSResultGroup, TemplateResult, PropertyValues } from "lit";
-import {
-  css,
-  html,
-  LitElement,
-} from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import { classMap } from "lit/directives/class-map";
-import type {
-  HomeAssistant,
-  Route,
-} from "@ha/types";
+import type { HomeAssistant, Route } from "@ha/types";
 import "@ha/components/ha-icon-button";
 import "@ha/components/ha-button";
 import "@ha/components/ha-list-item";
 import type { HASSDomEvent } from "@ha/common/dom/fire_event";
-import {
-  showConfirmationDialog,
-  showAlertDialog,
-} from "@ha/dialogs/generic/show-dialog-box";
+import { showConfirmationDialog, showAlertDialog } from "@ha/dialogs/generic/show-dialog-box";
 import type { HaFormSchema } from "@ha/components/ha-form/types";
 import type { RowClickedEvent } from "@ha/components/data-table/ha-data-table";
 import "@ha/layouts/hass-tabs-subpage";
@@ -40,7 +30,6 @@ import {
   removeInsteonDevice,
 } from "../../data/device";
 // import { get_insteon_devices_tabs } from "../insteon-device-router";
-
 
 @customElement("insteon-device-properties-page")
 class InsteonDevicePropertiesPage extends LitElement {
@@ -73,7 +62,7 @@ class InsteonDevicePropertiesPage extends LitElement {
   protected firstUpdated(changedProps: PropertyValues) {
     super.firstUpdated(changedProps);
     if (this.deviceId && this.hass) {
-      this._advancedAvailable = Boolean(this.hass.userData?.showAdvanced)
+      this._advancedAvailable = Boolean(this.hass.userData?.showAdvanced);
       fetchInsteonDevice(this.hass, this.deviceId).then(
         (device) => {
           this._device = device;
@@ -87,10 +76,7 @@ class InsteonDevicePropertiesPage extends LitElement {
   }
 
   protected _dirty() {
-    return this._properties?.reduce(
-      (modified, prop) => modified || prop.modified,
-      false,
-    );
+    return this._properties?.reduce((modified, prop) => modified || prop.modified, false);
   }
 
   protected render(): TemplateResult {
@@ -103,49 +89,49 @@ class InsteonDevicePropertiesPage extends LitElement {
         .localizeFunc=${this.insteon.localize}
         .backCallback=${this._handleBackTapped}
       >
-      ${this.narrow
-        ? html`
-            <div slot="header" class="header fullwidth">
-              <div slot="header" class="narrow-header-left">
-                ${this._device?.name}
+      ${
+        this.narrow
+          ? html`
+              <div slot="header" class="header fullwidth">
+                <div slot="header" class="narrow-header-left">${this._device?.name}</div>
+                <div slot="header" class="narrow-header-right">${this._generateActionMenu()}</div>
               </div>
-              <div slot="header" class="narrow-header-right">
-                  ${this._generateActionMenu()}
-              </div>
-            </div>
             `
-          : ""}
+          : ""
+      }
         <div class="container">
-          ${!this.narrow
-            ? html`
-            <div class="page-header fullwidth">
-              <table>
-                <tr>
-                  <td>
-                    <div class="device-name">
-                      <h1>${this._device?.name}</h1>
+          ${
+            !this.narrow
+              ? html`
+                  <div class="page-header fullwidth">
+                    <table>
+                      <tr>
+                        <td>
+                          <div class="device-name">
+                            <h1>${this._device?.name}</h1>
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div></div>
+                        </td>
+                      </tr>
+                    </table>
+                    <div class="logo header-right">
+                      <img
+                        src="https://brands.home-assistant.io/insteon/logo.png"
+                        alt="Insteon Logo"
+                        referrerpolicy="no-referrer"
+                        @load=${this._onImageLoad}
+                        @error=${this._onImageError}
+                      />
+                      ${this._generateActionMenu()}
                     </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div></div>
-                  </td>
-                </tr>
-              </table>
-              <div class="logo header-right">
-                <img
-                  src="https://brands.home-assistant.io/insteon/logo.png"
-                  alt="Insteon Logo"
-                  referrerpolicy="no-referrer"
-                  @load=${this._onImageLoad}
-                  @error=${this._onImageError}
-                />
-                ${this._generateActionMenu()}
-              </div>
-            </div>
-          `
-        : ""}
+                  </div>
+                `
+              : ""
+          }
 
           </div>
           <insteon-properties-data-table
@@ -165,11 +151,7 @@ class InsteonDevicePropertiesPage extends LitElement {
 
   private _generateActionMenu() {
     return html`
-      <ha-button-menu
-        corner="BOTTOM_START"
-        @action=${this._handleMenuAction}
-        activatable
-      >
+      <ha-button-menu corner="BOTTOM_START" @action=${this._handleMenuAction} activatable>
         <ha-icon-button
           slot="trigger"
           .label=${this.hass.localize("ui.common.menu")}
@@ -177,9 +159,7 @@ class InsteonDevicePropertiesPage extends LitElement {
         ></ha-icon-button>
 
         <!-- 0 -->
-        <ha-list-item>
-          ${this.insteon!.localize("common.actions.load")}
-        </ha-list-item>
+        <ha-list-item> ${this.insteon!.localize("common.actions.load")} </ha-list-item>
 
         <!-- 1 -->
         <ha-list-item .disabled=${!this._dirty()}>
@@ -196,20 +176,17 @@ class InsteonDevicePropertiesPage extends LitElement {
           aria-label=${this.insteon.localize("device.actions.delete")}
           class=${classMap({ warning: true })}
         >
-        ${this.insteon.localize("device.actions.delete")}
-      </ha-list-item>
+          ${this.insteon.localize("device.actions.delete")}
+        </ha-list-item>
 
         <!-- 4 -->
         ${this._advancedAvailable
           ? html`<ha-list-item>
-            ${this.insteon!.localize(
-              "properties.actions." + this._showHideAdvanced,
-            )}
-          </ha-list-item>`
-          : ""
-        }
+              ${this.insteon!.localize("properties.actions." + this._showHideAdvanced)}
+            </ha-list-item>`
+          : ""}
       </ha-button-menu>
-    `
+    `;
   }
 
   private _onImageLoad(ev) {
@@ -241,7 +218,7 @@ class InsteonDevicePropertiesPage extends LitElement {
     } catch (err) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.load"),
-        confirmText: this.insteon!.localize("common.close")
+        confirmText: this.insteon!.localize("common.close"),
       });
     }
     this._showWait = false;
@@ -259,19 +236,18 @@ class InsteonDevicePropertiesPage extends LitElement {
 
   private async _delete(remove_all_refs: boolean) {
     await removeInsteonDevice(this.hass, this._device!.address, remove_all_refs);
-    navigate("/insteon")
+    navigate("/insteon");
   }
 
   private async _checkScope() {
     if (this._device!.address.includes("X10")) {
-      this._delete(false)
-      return
+      this._delete(false);
+      return;
     }
     const remove_all_refs = await showConfirmationDialog(this, {
       title: this.insteon.localize("device.remove_all_refs.title"),
-      text: html`
-        ${this.insteon.localize("device.remove_all_refs.description")}<br><br>
-        ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br>
+      text: html` ${this.insteon.localize("device.remove_all_refs.description")}<br /><br />
+        ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br />
         ${this.insteon.localize("device.remove_all_refs.dismiss_description")}`,
       confirmText: this.insteon!.localize("common.yes"),
       dismissText: this.insteon!.localize("common.no"),
@@ -302,7 +278,7 @@ class InsteonDevicePropertiesPage extends LitElement {
     } catch (err) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.write"),
-        confirmText: this.insteon!.localize("common.close")
+        confirmText: this.insteon!.localize("common.close"),
       });
     }
     this._getProperties();
@@ -324,7 +300,7 @@ class InsteonDevicePropertiesPage extends LitElement {
   private _onResetPropertiesClick = async () => {
     await resetProperties(this.hass, this._device!.address);
     this._getProperties();
-  }
+  };
 
   private async _handleRowClicked(ev: HASSDomEvent<RowClickedEvent>) {
     const id = ev.detail.id;
@@ -360,7 +336,7 @@ class InsteonDevicePropertiesPage extends LitElement {
     } else {
       navigate("/insteon/devices");
     }
-  }
+  };
 
   private async _handleMenuAction(ev: CustomEvent<ActionDetail>) {
     switch (ev.detail.index) {
@@ -395,7 +371,7 @@ class InsteonDevicePropertiesPage extends LitElement {
   private _goBack = async (): Promise<void> => {
     await resetProperties(this.hass, this._device!.address);
     navigate("/insteon/devices");
-  }
+  };
 
   private _noDeviceError(): void {
     showAlertDialog(this, {
@@ -408,40 +384,34 @@ class InsteonDevicePropertiesPage extends LitElement {
     const new_schema: { [key: string]: HaFormSchema | HaFormSchema[] } = {
       ...schema,
     };
-    Object.entries(new_schema as { [key: string]: HaFormSchema }).forEach(
-      ([prop, prop_schema]) => {
-        if (!prop_schema.description) {
-          prop_schema.description = {};
-        }
-        prop_schema.description[prop] = this.insteon!.localize(
-          "properties.descriptions." + prop,
-        );
-        if (prop_schema.type === "multi_select") {
-          Object.entries(prop_schema.options).forEach(([option, value]) => {
-            if (isNaN(+value)) {
-              prop_schema.options[option] = this.insteon!.localize(
-                "properties.form_options." + value,
-              );
-            } else {
-              prop_schema.options[option] = value;
-            }
-          });
-        }
-        if (prop_schema.type === "select") {
-          Object.entries(prop_schema.options).forEach(
-            ([item, [_key, value]]) => {
-              if (isNaN(+value)) {
-                prop_schema.options[item][1] = this.insteon!.localize(
-                  "properties.form_options." + value,
-                );
-              } else {
-                prop_schema.options[item][1] = value;
-              }
-            },
-          );
-        }
-      },
-    );
+    Object.entries(new_schema as { [key: string]: HaFormSchema }).forEach(([prop, prop_schema]) => {
+      if (!prop_schema.description) {
+        prop_schema.description = {};
+      }
+      prop_schema.description[prop] = this.insteon!.localize("properties.descriptions." + prop);
+      if (prop_schema.type === "multi_select") {
+        Object.entries(prop_schema.options).forEach(([option, value]) => {
+          if (isNaN(+value)) {
+            prop_schema.options[option] = this.insteon!.localize(
+              "properties.form_options." + value,
+            );
+          } else {
+            prop_schema.options[option] = value;
+          }
+        });
+      }
+      if (prop_schema.type === "select") {
+        Object.entries(prop_schema.options).forEach(([item, [_key, value]]) => {
+          if (isNaN(+value)) {
+            prop_schema.options[item][1] = this.insteon!.localize(
+              "properties.form_options." + value,
+            );
+          } else {
+            prop_schema.options[item][1] = value;
+          }
+        });
+      }
+    });
     return schema;
   }
 
@@ -491,9 +461,7 @@ class InsteonDevicePropertiesPage extends LitElement {
         h1 {
           margin: 0;
           font-family: var(--paper-font-headline_-_font-family);
-          -webkit-font-smoothing: var(
-            --paper-font-headline_-_-webkit-font-smoothing
-          );
+          -webkit-font-smoothing: var(--paper-font-headline_-_-webkit-font-smoothing);
           font-size: var(--paper-font-headline_-_font-size);
           font-weight: var(--paper-font-headline_-_font-weight);
           letter-spacing: var(--paper-font-headline_-_letter-spacing);

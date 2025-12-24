@@ -1,16 +1,17 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import "@ha/components/ha-button";
 import { haStyleDialog } from "@ha/resources/styles";
-import { HomeAssistant } from "@ha/types";
-import { Insteon } from "../data/insteon";
+import type { HomeAssistant } from "@ha/types";
+import type { Insteon } from "../data/insteon";
 import { addDeviceSchema } from "../data/device";
 import { checkAddress } from "../tools/address-utils";
 import "@ha/components/ha-form/ha-form";
 import type { HaFormSchema } from "@ha/components/ha-form/types";
-import { InsteonAddDeviceDialogParams } from "./show-dialog-insteon-add-device";
+import type { InsteonAddDeviceDialogParams } from "./show-dialog-insteon-add-device";
 
 @customElement("dialog-insteon-add-device")
 class DialogInsteonAddDevice extends LitElement {
@@ -27,7 +28,7 @@ class DialogInsteonAddDevice extends LitElement {
   @state() private _callback?: (
     device_address: string | undefined,
     multiple: boolean,
-    add_x10: boolean
+    add_x10: boolean,
   ) => Promise<void>;
 
   @state() private _errors?: { [key: string]: string };
@@ -96,9 +97,7 @@ class DialogInsteonAddDevice extends LitElement {
       console.info("Should be calling callback");
       this._close();
       const device_address =
-        this._formData.device_address == ""
-          ? undefined
-          : this._formData.device_address;
+        this._formData.device_address === "" ? undefined : this._formData.device_address;
       await this._callback!(device_address, this._formData.multiple, this._formData.add_x10);
     } else {
       this._errors!.base = this.insteon!.localize("common.error.base");
@@ -114,16 +113,11 @@ class DialogInsteonAddDevice extends LitElement {
   }
 
   private _checkData(): boolean {
-    if (
-      this._formData.device_address == "" ||
-      checkAddress(this._formData.device_address)
-    )
+    if (this._formData.device_address === "" || checkAddress(this._formData.device_address))
       return true;
 
     this._errors = {};
-    this._errors.device_address = this.insteon!.localize(
-      "common.error.address"
-    );
+    this._errors.device_address = this.insteon!.localize("common.error.address");
     return false;
   }
 

@@ -1,17 +1,18 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
-import { HomeAssistant } from "@ha/types";
+import type { HomeAssistant } from "@ha/types";
 import "@ha/components/ha-button";
-import { Insteon } from "../../data/insteon";
-import { ALDBRecord } from "../../data/device";
+import type { Insteon } from "../../data/insteon";
+import type { ALDBRecord } from "../../data/device";
 import "./insteon-aldb-data-table";
 import { checkAddress } from "../../tools/address-utils";
 import "@ha/components/ha-form/ha-form";
 import type { HaFormSchema, HaFormData } from "@ha/components/ha-form/types";
-import { InsteonALDBRecordDialogParams } from "./show-dialog-insteon-aldb-record";
+import type { InsteonALDBRecordDialogParams } from "./show-dialog-insteon-aldb-record";
 
 @customElement("dialog-insteon-aldb-record")
 class DialogInsteonALDBRecord extends LitElement {
@@ -84,7 +85,7 @@ class DialogInsteonALDBRecord extends LitElement {
   }
 
   private _haFormData(): HaFormData {
-    return {...this._formData}
+    return { ...this._formData };
   }
 
   private _dismiss(): void {

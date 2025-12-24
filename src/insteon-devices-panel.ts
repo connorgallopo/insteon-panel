@@ -1,35 +1,27 @@
 import { mdiPlus } from "@mdi/js";
-import { UnsubscribeFunc } from "home-assistant-js-websocket";
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { UnsubscribeFunc } from "home-assistant-js-websocket";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators";
 import memoizeOne from "memoize-one";
-import "@ha/components/data-table/ha-data-table";
+import type { DataTableRowData, RowClickedEvent } from "@ha/components/data-table/ha-data-table";
 import "@ha/components/ha-fab";
-import {
-  DataTableRowData,
-  RowClickedEvent,
-} from "@ha/components/data-table/ha-data-table";
 import "@ha/components/ha-card";
 import "@ha/components/ha-button-menu";
 import "@ha/layouts/hass-tabs-subpage-data-table";
 import { haStyle } from "@ha/resources/styles";
-import { HomeAssistant, Route } from "@ha/types";
-import {
-  subscribeDeviceRegistry,
-  DeviceRegistryEntry,
-} from "@ha/data/device_registry";
-import { Insteon } from "./data/insteon";
+import type { HomeAssistant, Route } from "@ha/types";
+import type { DeviceRegistryEntry } from "@ha/data/device_registry";
+import { subscribeDeviceRegistry } from "@ha/data/device_registry";
+import type { Insteon } from "./data/insteon";
 import { navigate } from "@ha/common/navigate";
-import { HASSDomEvent } from "@ha/common/dom/fire_event";
-import {
-  AreaRegistryEntry,
-  subscribeAreaRegistry,
-} from "@ha/data/area_registry";
+import type { HASSDomEvent } from "@ha/common/dom/fire_event";
+import type { AreaRegistryEntry } from "@ha/data/area_registry";
+import { subscribeAreaRegistry } from "@ha/data/area_registry";
 import { showInsteonAddDeviceDialog } from "./device/show-dialog-insteon-add-device";
 import { showInsteonAddingDeviceDialog } from "./device/show-dialog-adding-device";
 import { showDeviceAddX10Dialog } from "./device/show-dialog-device-add-x10";
 import { insteonMainTabs } from "./insteon-router";
-import "@ha/components/ha-fab";
 import { showAlertDialog } from "@ha/dialogs/generic/show-dialog-box";
 
 interface DeviceRowData extends DataTableRowData {
@@ -222,11 +214,7 @@ export class InsteonDevicesPanel extends LitElement {
     });
   }
 
-  private async _handleDeviceAdd(
-    address: string,
-    multiple: boolean,
-    add_x10: boolean,
-  ) {
+  private async _handleDeviceAdd(address: string, multiple: boolean, add_x10: boolean) {
     if (add_x10) {
       showDeviceAddX10Dialog(this, {
         hass: this.hass,
@@ -252,10 +240,7 @@ export class InsteonDevicesPanel extends LitElement {
     });
   }
 
-  private async _handleRowClicked(
-    ev: HASSDomEvent<RowClickedEvent>,
-  ): Promise<void> {
-    // eslint-disable-next-line no-console
+  private async _handleRowClicked(ev: HASSDomEvent<RowClickedEvent>): Promise<void> {
     // console.info("Row clicked received");
     const id = ev.detail.id;
     navigate("/insteon/device/properties/" + id);

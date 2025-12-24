@@ -1,15 +1,16 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
 import "@ha/components/ha-button";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
-import { HomeAssistant } from "@ha/types";
-import { Insteon } from "../data/insteon";
+import type { HomeAssistant } from "@ha/types";
+import type { Insteon } from "../data/insteon";
 import { rampRateSchema } from "../data/device";
 import "@ha/components/ha-slider";
 import "@ha/components/ha-selector/ha-selector-select";
-import { InsteonSetOnLevelDialogParams } from "./show-dialog-insteon-scene-set-on-level";
+import type { InsteonSetOnLevelDialogParams } from "./show-dialog-insteon-scene-set-on-level";
 import memoizeOne from "memoize-one";
 
 import type { SelectSelector } from "@ha/data/selector";
@@ -30,7 +31,7 @@ class DialogInsteonSetOnLevel extends LitElement {
     address: string,
     group: number,
     value: number,
-    ramp_rate: number
+    ramp_rate: number,
   ) => Promise<void>;
 
   @state() private _opened = false;
@@ -43,9 +44,7 @@ class DialogInsteonSetOnLevel extends LitElement {
 
   private _group = 0;
 
-  public async showDialog(
-    params: InsteonSetOnLevelDialogParams
-  ): Promise<void> {
+  public async showDialog(params: InsteonSetOnLevelDialogParams): Promise<void> {
     this.hass = params.hass;
     this.insteon = params.insteon;
     this._callback = params.callback;
@@ -65,7 +64,7 @@ class DialogInsteonSetOnLevel extends LitElement {
           label: option[1],
         })),
       },
-    })
+    }),
   );
 
   protected render(): TemplateResult {
@@ -118,12 +117,7 @@ class DialogInsteonSetOnLevel extends LitElement {
     // eslint-disable-next-line no-console
     console.info("Should be calling callback");
     this._close();
-    await this._callback!(
-      this._address,
-      this._group,
-      this._value,
-      this._ramp_rate
-    );
+    await this._callback!(this._address, this._group, this._value, this._ramp_rate);
   }
 
   private _close(): void {

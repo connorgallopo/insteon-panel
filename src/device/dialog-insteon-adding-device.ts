@@ -1,19 +1,16 @@
-import { css, CSSResultGroup, html, LitElement, TemplateResult } from "lit";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import "@ha/components/ha-code-editor";
 import "@ha/components/ha-button";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
-import { HomeAssistant } from "@ha/types";
-import {
-  Insteon,
-} from "../data/insteon";
-import {
-  cancelAddInsteonDevice,
-  deviceAddedMessage,
-} from "../data/device";
+import type { HomeAssistant } from "@ha/types";
+import type { Insteon } from "../data/insteon";
+import type { deviceAddedMessage } from "../data/device";
+import { cancelAddInsteonDevice } from "../data/device";
 import "@ha/components/ha-form/ha-form";
-import { InsteonAddingDeviceDialogParams } from "./show-dialog-adding-device";
+import type { InsteonAddingDeviceDialogParams } from "./show-dialog-adding-device";
 
 @customElement("dialog-insteon-adding-device")
 class DialogInsteonAddingDevice extends LitElement {
@@ -41,9 +38,7 @@ class DialogInsteonAddingDevice extends LitElement {
 
   private _refreshLinkingTimeoutHandle?: number;
 
-  public async showDialog(
-    params: InsteonAddingDeviceDialogParams
-  ): Promise<void> {
+  public async showDialog(params: InsteonAddingDeviceDialogParams): Promise<void> {
     this.hass = params.hass;
     this.insteon = params.insteon;
     this._address = params.address;
@@ -78,8 +73,7 @@ class DialogInsteonAddingDevice extends LitElement {
   }
 
   private _showInstructions() {
-    if (this.insteon && !this._subscribed)
-      return this.insteon.localize("device.add.complete");
+    if (this.insteon && !this._subscribed) return this.insteon.localize("device.add.complete");
     if (this._address) return this._addressText(this._address);
     if (this._multiple) return this.insteon!.localize("device.add.multiple");
     return this.insteon!.localize("device.add.single");
@@ -144,11 +138,11 @@ class DialogInsteonAddingDevice extends LitElement {
         type: "insteon/device/add",
         multiple: this._multiple,
         device_address: this._address,
-      }
+      },
     );
     this._refreshLinkingTimeoutHandle = window.setTimeout(
       () => this._unsubscribe(),
-      (3 * 60 + 15) * 1000
+      (3 * 60 + 15) * 1000,
     );
   }
 

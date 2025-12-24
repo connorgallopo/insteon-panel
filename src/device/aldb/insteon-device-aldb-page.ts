@@ -2,23 +2,17 @@ import { mdiPlus, mdiDotsVertical } from "@mdi/js";
 import memoizeOne from "memoize-one";
 import "@ha/components/ha-icon-button";
 import "@ha/components/ha-spinner";
-import {
-  css,
-  CSSResultGroup,
-  html,
-  LitElement,
-  TemplateResult,
-  PropertyValues,
-} from "lit";
+import type { CSSResultGroup, TemplateResult, PropertyValues } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import { classMap } from "lit/directives/class-map";
 import "@ha/components/ha-fab";
 import "@ha/components/ha-button";
 import "@ha/components/ha-list-item";
-import { Insteon, InsteonDevice } from "../../data/insteon";
+import type { Insteon, InsteonDevice } from "../../data/insteon";
+import type { ALDBRecord } from "../../data/device";
 import {
   fetchInsteonDevice,
-  ALDBRecord,
   fetchInsteonALDB,
   changeALDBRecord,
   createALDBRecord,
@@ -31,23 +25,16 @@ import {
   removeInsteonDevice,
 } from "../../data/device";
 import "@ha/layouts/hass-tabs-subpage";
-import {
-  HomeAssistant,
-  Route,
-} from "@ha/types";
+import type { HomeAssistant, Route } from "@ha/types";
 import { insteonDeviceTabs } from "../insteon-device-router";
 import "./insteon-aldb-data-table";
-import { HASSDomEvent } from "@ha/common/dom/fire_event";
-import { RowClickedEvent } from "@ha/components/data-table/ha-data-table";
-import {
-  showConfirmationDialog,
-  showAlertDialog,
-} from "@ha/dialogs/generic/show-dialog-box";
+import type { HASSDomEvent } from "@ha/common/dom/fire_event";
+import type { RowClickedEvent } from "@ha/components/data-table/ha-data-table";
+import { showConfirmationDialog, showAlertDialog } from "@ha/dialogs/generic/show-dialog-box";
 import { showInsteonALDBRecordDialog } from "./show-dialog-insteon-aldb-record";
 import { navigate } from "@ha/common/navigate";
 import "@ha/components/ha-button-menu";
 import { fileDownload } from "@ha/util/file_download";
-
 
 import { haStyle } from "@ha/resources/styles";
 
@@ -55,10 +42,10 @@ export interface ExportableRecord {
   mem_addr: number;
   in_use: boolean;
   is_controller: boolean;
-  is_highwater: boolean,
+  is_highwater: boolean;
   group: number;
   target: string;
-  data1: number,
+  data1: number;
   data2: number;
   data3: number;
 }
@@ -100,7 +87,7 @@ class InsteonDeviceALDBPage extends LitElement {
     console.info("Device GUID: " + this.deviceId + " in aldb");
     super.firstUpdated(changedProps);
     if (this.deviceId && this.hass) {
-      this._showUnusedAvailable = Boolean(this.hass.userData?.showAdvanced)
+      this._showUnusedAvailable = Boolean(this.hass.userData?.showAdvanced);
       fetchInsteonDevice(this.hass, this.deviceId).then(
         (device) => {
           this._device = device;
@@ -122,10 +109,10 @@ class InsteonDeviceALDBPage extends LitElement {
     return this._records?.reduce((dirty, rec) => dirty || rec.dirty, false);
   }
 
-  private _filterRecords(
-    records: ALDBRecord[]
-  ): ALDBRecord[] {
-    return records.filter((record) => record.in_use || (this._showUnused && this._showUnusedAvailable) || record.dirty);
+  private _filterRecords(records: ALDBRecord[]): ALDBRecord[] {
+    return records.filter(
+      (record) => record.in_use || (this._showUnused && this._showUnusedAvailable) || record.dirty,
+    );
   }
 
   protected render(): TemplateResult {
@@ -140,15 +127,11 @@ class InsteonDeviceALDBPage extends LitElement {
         hasFab
       >
         ${this.narrow
-        ? html`
-            <div slot="header" class="header fullwidth">
-              <div slot="header" class="narrow-header-left">
-                ${this._device?.name}
+          ? html`
+              <div slot="header" class="header fullwidth">
+                <div slot="header" class="narrow-header-left">${this._device?.name}</div>
+                <div slot="header" class="narrow-header-right">${this._generateActionMenu()}</div>
               </div>
-              <div slot="header" class="narrow-header-right">
-                  ${this._generateActionMenu()}
-              </div>
-            </div>
             `
           : ""}
         <div class="container">
@@ -168,12 +151,10 @@ class InsteonDeviceALDBPage extends LitElement {
                         <div class="aldb-status">
                           ALDB Status:
                           ${this._device
-                            ? this.insteon!.localize(
-                                "aldb.status." + this._device?.aldb_status,
-                              )
+                            ? this.insteon!.localize("aldb.status." + this._device?.aldb_status)
                             : ""}
                         </div>
-                        </td>
+                      </td>
                     </tr>
                   </table>
                   <div class="logo header-right">
@@ -183,7 +164,7 @@ class InsteonDeviceALDBPage extends LitElement {
                       @load=${this._onImageLoad}
                       @error=${this._onImageError}
                     />
-                        ${this._generateActionMenu()}
+                    ${this._generateActionMenu()}
                   </div>
                 </div>
               `
@@ -212,31 +193,21 @@ class InsteonDeviceALDBPage extends LitElement {
 
   private _generateActionMenu() {
     return html`
-      <ha-button-menu
-        corner="BOTTOM_START"
-        @action=${this._handleMenuAction}
-        activatable
-        >
+      <ha-button-menu corner="BOTTOM_START" @action=${this._handleMenuAction} activatable>
         <ha-icon-button
           slot="trigger"
           .label=${this.hass.localize("ui.common.menu")}
           .path=${mdiDotsVertical}
         ></ha-icon-button>
-        <ha-list-item>
-          ${this.insteon!.localize("common.actions.load")}
-        </ha-list-item>
-        <ha-list-item>
-          ${this.insteon!.localize("aldb.actions.add_default_links")}
-        </ha-list-item>
+        <ha-list-item> ${this.insteon!.localize("common.actions.load")} </ha-list-item>
+        <ha-list-item> ${this.insteon!.localize("aldb.actions.add_default_links")} </ha-list-item>
         <ha-list-item .disabled=${!this._dirty()}>
           ${this.insteon!.localize("common.actions.write")}
         </ha-list-item>
         <ha-list-item .disabled=${!this._dirty()}>
           ${this.insteon!.localize("common.actions.reset")}
         </ha-list-item>
-        <ha-list-item>
-          ${this.insteon.localize("aldb.actions.download")}
-        </ha-list-item>
+        <ha-list-item> ${this.insteon.localize("aldb.actions.download")} </ha-list-item>
 
         <ha-list-item
           aria-label=${this.insteon.localize("device.actions.delete")}
@@ -246,14 +217,12 @@ class InsteonDeviceALDBPage extends LitElement {
         </ha-list-item>
 
         ${this._showUnusedAvailable
-          ? html`
-            <ha-list-item>
+          ? html` <ha-list-item>
               ${this.insteon!.localize("aldb.actions." + this._showHideUnused)}
             </ha-list-item>`
-          : ""
-        }
+          : ""}
       </ha-button-menu>
-    `
+    `;
   }
 
   private _getRecords(): void {
@@ -364,19 +333,18 @@ class InsteonDeviceALDBPage extends LitElement {
 
   private async _delete(remove_all_refs: boolean) {
     await removeInsteonDevice(this.hass, this._device!.address, remove_all_refs);
-    navigate("/insteon")
+    navigate("/insteon");
   }
 
   private async _checkScope() {
     if (this._device!.address.includes("X10")) {
-      this._delete(false)
-      return
+      this._delete(false);
+      return;
     }
     const remove_all_refs = await showConfirmationDialog(this, {
       title: this.insteon.localize("device.remove_all_refs.title"),
-      text: html`
-        ${this.insteon.localize("device.remove_all_refs.description")}<br><br>
-        ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br>
+      text: html` ${this.insteon.localize("device.remove_all_refs.description")}<br /><br />
+        ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br />
         ${this.insteon.localize("device.remove_all_refs.dismiss_description")}`,
       confirmText: this.insteon!.localize("common.yes"),
       dismissText: this.insteon!.localize("common.no"),
@@ -478,7 +446,7 @@ class InsteonDeviceALDBPage extends LitElement {
   private _goBack = async (): Promise<void> => {
     await resetALDB(this.hass, this._device!.address);
     navigate("/insteon/devices");
-  }
+  };
 
   private _handleMessage(message: any): void {
     if (message.type === "record_loaded") {
@@ -516,10 +484,7 @@ class InsteonDeviceALDBPage extends LitElement {
         device_address: this._device?.address,
       },
     );
-    this._refreshDevicesTimeoutHandle = window.setTimeout(
-      () => this._unsubscribe(),
-      1200000,
-    );
+    this._refreshDevicesTimeoutHandle = window.setTimeout(() => this._unsubscribe(), 1200000);
   }
 
   private _noDeviceError(): void {
@@ -531,21 +496,22 @@ class InsteonDeviceALDBPage extends LitElement {
   }
 
   private _download() {
-    const filename = this._device?.address + " ALDB.json"
+    const filename = this._device?.address + " ALDB.json";
     fileDownload(
       `data:text/plain;charset=utf-8,${encodeURIComponent(
-        JSON.stringify({ aldb: this._exportable_records(this._records) }, null, 2)
+        JSON.stringify({ aldb: this._exportable_records(this._records) }, null, 2),
       )}`,
-      filename
+      filename,
     );
   }
 
-  private _exportable_records = memoizeOne((records: ALDBRecord[] | undefined): ExportableRecord[] => {
+  private _exportable_records = memoizeOne(
+    (records: ALDBRecord[] | undefined): ExportableRecord[] => {
       if (!records) {
         return [];
       }
 
-    return records.map((rec) => ({
+      return records.map((rec) => ({
         mem_addr: rec.mem_addr,
         in_use: rec.in_use,
         is_controller: rec.is_controller,
@@ -556,7 +522,8 @@ class InsteonDeviceALDBPage extends LitElement {
         data2: rec.data2,
         data3: rec.data3,
       }));
-    });
+    },
+  );
 
   static get styles(): CSSResultGroup {
     return [
@@ -611,9 +578,7 @@ class InsteonDeviceALDBPage extends LitElement {
         h1 {
           margin: 0;
           font-family: var(--paper-font-headline_-_font-family);
-          -webkit-font-smoothing: var(
-            --paper-font-headline_-_-webkit-font-smoothing
-          );
+          -webkit-font-smoothing: var(--paper-font-headline_-_-webkit-font-smoothing);
           font-size: var(--paper-font-headline_-_font-size);
           font-weight: var(--paper-font-headline_-_font-weight);
           letter-spacing: var(--paper-font-headline_-_letter-spacing);

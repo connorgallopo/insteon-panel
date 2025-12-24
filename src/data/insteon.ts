@@ -1,5 +1,5 @@
-import { Repository, Status, Message } from "./common";
-import { ConfigEntry } from "@ha/data/config_entries";
+import type { Repository, Status, Message } from "./common";
+import type { ConfigEntry } from "@ha/data/config_entries";
 
 export interface Insteon {
   language: string;
@@ -42,29 +42,11 @@ export enum X10HouseCode {
   "p",
 }
 
-export const X10UnitCode = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-];
+export const X10UnitCode = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 
 export interface InsteonX10Device {
   housecode: X10HouseCode;
-  unitcode:
-  | 1
-  | 2
-  | 3
-  | 4
-  | 5
-  | 6
-  | 7
-  | 8
-  | 9
-  | 10
-  | 11
-  | 12
-  | 13
-  | 14
-  | 15
-  | 16;
+  unitcode: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16;
   platform: "binary_sensor" | "light" | "switch";
   dim_steps: null | number;
 }

@@ -1,17 +1,11 @@
-import { ActionDetail } from "@material/mwc-list/mwc-list-foundation";
+import type { ActionDetail } from "@material/mwc-list/mwc-list-foundation";
 import { mdiContentSave, mdiDelete, mdiDotsVertical } from "@mdi/js";
 import "@ha/components/ha-list-item";
 import "@polymer/paper-item/paper-icon-item";
 import "@polymer/paper-item/paper-item";
 import "@polymer/paper-item/paper-item-body";
-import {
-  css,
-  CSSResultGroup,
-  html,
-  LitElement,
-  PropertyValues,
-  TemplateResult,
-} from "lit";
+import type { CSSResultGroup, PropertyValues, TemplateResult } from "lit";
+import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
 import { classMap } from "lit/directives/class-map";
 import { afterNextRender } from "@ha/common/util/render-status";
@@ -28,34 +22,23 @@ import "@ha/components/ha-svg-icon";
 import "@ha/components/ha-textfield";
 import "@ha/components/ha-checkbox";
 import "@ha/components/ha-switch";
-import {
-  computeDeviceName,
-} from "@ha/common/entity/compute_device_name";
-import {
-  DeviceRegistryEntry,
-  fetchDeviceRegistry,
-} from "@ha/data/device_registry";
-import {
-  EntityRegistryEntry,
-  fetchEntityRegistry,
-} from "@ha/data/entity_registry";
-import {
-  showConfirmationDialog,
-  showAlertDialog,
-} from "@ha/dialogs/generic/show-dialog-box";
+import { computeDeviceName } from "@ha/common/entity/compute_device_name";
+import type { DeviceRegistryEntry } from "@ha/data/device_registry";
+import { fetchDeviceRegistry } from "@ha/data/device_registry";
+import type { EntityRegistryEntry } from "@ha/data/entity_registry";
+import { fetchEntityRegistry } from "@ha/data/entity_registry";
+import { showConfirmationDialog, showAlertDialog } from "@ha/dialogs/generic/show-dialog-box";
 import { KeyboardShortcutMixin } from "@ha/mixins/keyboard-shortcut-mixin";
 import { haStyle } from "@ha/resources/styles";
-import { HomeAssistant, Route } from "@ha/types";
+import type { HomeAssistant, Route } from "@ha/types";
 import "@ha/panels/config/ha-config-section";
-import { Insteon } from "../data/insteon";
+import type { Insteon } from "../data/insteon";
+import type { InsteonScene, InsteonSceneDeviceData, InsteonSceneLinkData } from "../data/scene";
 import {
-  InsteonScene,
-  InsteonSceneDeviceData,
   fetchInsteonScene,
   sceneDataSchema,
   saveInsteonScene,
   deleteInsteonScene,
-  InsteonSceneLinkData,
 } from "../data/scene";
 import "@ha/components/ha-form/ha-form";
 import { showInsteonSetOnLevelDialog } from "./show-dialog-insteon-scene-set-on-level";
@@ -113,8 +96,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
 
   @state() private _entityRegistryEntries: EntityRegistryEntry[] = [];
 
-  private _insteonToHaDeviceMap: { [address: string]: InsteonToHaDeviceMap } =
-    {};
+  private _insteonToHaDeviceMap: { [address: string]: InsteonToHaDeviceMap } = {};
 
   private _haToinsteonDeviceMap: { [deviceId: string]: string } = {};
 
@@ -122,9 +104,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
 
   @state() private _saving = false;
 
-  protected firstUpdated(
-    _changedProperties: Map<string | number | symbol, unknown>
-  ): void {
+  protected firstUpdated(_changedProperties: Map<string | number | symbol, unknown>): void {
     super.firstUpdated(_changedProperties);
 
     if (!this.hass || !this.insteon) {
@@ -140,23 +120,11 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     this._getDeviceRegistryEntries();
     this._getEntityRegistryEntries();
 
-    //Copied from ha-panel-config to retain consistancy
-    this.style.setProperty(
-      "--app-header-background-color",
-      "var(--sidebar-background-color)"
-    );
-    this.style.setProperty(
-      "--app-header-text-color",
-      "var(--sidebar-text-color)"
-    );
-    this.style.setProperty(
-      "--app-header-border-bottom",
-      "1px solid var(--divider-color)"
-    );
-    this.style.setProperty(
-      "--ha-card-border-radius",
-      "var(--ha-config-card-border-radius, 8px)"
-    );
+    // Copied from ha-panel-config to retain consistancy
+    this.style.setProperty("--app-header-background-color", "var(--sidebar-background-color)");
+    this.style.setProperty("--app-header-text-color", "var(--sidebar-text-color)");
+    this.style.setProperty("--app-header-border-bottom", "1px solid var(--divider-color)");
+    this.style.setProperty("--ha-card-border-radius", "var(--ha-config-card-border-radius, 8px)");
   }
 
   protected updated(changedProps: PropertyValues): void {
@@ -166,10 +134,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
       return;
     }
 
-    if (
-      changedProps.has("_deviceRegistryEntries") ||
-      changedProps.has("_entityRegistryEntries")
-    ) {
+    if (changedProps.has("_deviceRegistryEntries") || changedProps.has("_entityRegistryEntries")) {
       this._mapDeviceEntities();
     }
   }
@@ -229,10 +194,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
           <ha-config-section vertical .isWide=${this.isWide}>
             ${this._saving
               ? html`<div>
-                  <ha-spinner
-                    active
-                    alt="Loading"
-                  ></ha-spinner>
+                  <ha-spinner active alt="Loading"></ha-spinner>
                 </div>`
               : this._showEditorArea(name, devices)}
           </ha-config-section>
@@ -255,8 +217,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     const allDevices = await fetchDeviceRegistry(this.hass.connection);
     this._deviceRegistryEntries = allDevices.filter(
       (device) =>
-        device.config_entries &&
-        device.config_entries.includes(this.insteon.config_entry.entry_id)
+        device.config_entries && device.config_entries.includes(this.insteon.config_entry.entry_id),
     );
   }
 
@@ -264,16 +225,14 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     const allEntities = await fetchEntityRegistry(this.hass.connection);
     this._entityRegistryEntries = allEntities.filter(
       (entity) =>
-        entity.entity_category == null &&
-        entity.config_entry_id == this.insteon.config_entry.entry_id &&
-        INCLUDED_DOMAINS.includes(computeDomain(entity.entity_id))
+        entity.entity_category === null &&
+        entity.config_entry_id === this.insteon.config_entry.entry_id &&
+        INCLUDED_DOMAINS.includes(computeDomain(entity.entity_id)),
     );
   }
 
   private _showEditorArea(name, devices) {
-    return html`<div slot="introduction">
-        ${this.insteon.localize("scenes.scene.introduction")}
-      </div>
+    return html`<div slot="introduction">${this.insteon.localize("scenes.scene.introduction")}</div>
       <ha-card outlined>
         <div class="card-content">
           <ha-textfield
@@ -286,64 +245,53 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
       </ha-card>
 
       <ha-config-section vertical .isWide=${this.isWide}>
-        <div slot="header">
-          ${this.insteon.localize("scenes.scene.devices.header")}
-        </div>
-        <div slot="introduction">
-          ${this.insteon.localize("scenes.scene.devices.introduction")}
-        </div>
+        <div slot="header">${this.insteon.localize("scenes.scene.devices.header")}</div>
+        <div slot="introduction">${this.insteon.localize("scenes.scene.devices.introduction")}</div>
 
         ${devices.map(
-          (device) =>
-            html`
-              <ha-card outlined>
-                <h1 class="card-header">
-                  ${device.name}
-                  <ha-icon-button
-                    .path=${mdiDelete}
-                    .label=${this.hass.localize(
-                      "ui.panel.config.scene.editor.devices.delete"
-                    )}
-                    .device_address=${device.address}
-                    @click=${this._deleteDevice}
-                  ></ha-icon-button>
-                </h1>
-                ${!device.entities
-                  ? html` <ha-form .schema=${sceneDataSchema}></ha-form> `
-                  : device.entities.map(
-                      (entity) =>
-                        html`
-                          <paper-icon-item class="device-entity">
-                            <ha-checkbox
-                              .checked=${entity.is_in_scene}
-                              @change=${this._toggleSelection}
-                              .device_address=${device.address}
-                              .group=${entity.data3}
-                            ></ha-checkbox>
-                            <paper-item-body
-                              @click=${this._showSetOnLevel}
-                              .device_address=${device.address}
-                              .group=${entity.data3}
-                            >
-                              ${entity.name}
-                            </paper-item-body>
-                            <ha-switch
-                              .checked=${entity.data1 > 0}
-                              @change=${this._toggleOnLevel}
-                              .device_address=${device.address}
-                              .group=${entity.data3}
-                            ></ha-switch>
-                          </paper-icon-item>
-                        `
-                    )};
-              </ha-card>
-            `
+          (device) => html`
+            <ha-card outlined>
+              <h1 class="card-header">
+                ${device.name}
+                <ha-icon-button
+                  .path=${mdiDelete}
+                  .label=${this.hass.localize("ui.panel.config.scene.editor.devices.delete")}
+                  .device_address=${device.address}
+                  @click=${this._deleteDevice}
+                ></ha-icon-button>
+              </h1>
+              ${!device.entities
+                ? html` <ha-form .schema=${sceneDataSchema}></ha-form> `
+                : device.entities.map(
+                    (entity) => html`
+                      <paper-icon-item class="device-entity">
+                        <ha-checkbox
+                          .checked=${entity.is_in_scene}
+                          @change=${this._toggleSelection}
+                          .device_address=${device.address}
+                          .group=${entity.data3}
+                        ></ha-checkbox>
+                        <paper-item-body
+                          @click=${this._showSetOnLevel}
+                          .device_address=${device.address}
+                          .group=${entity.data3}
+                        >
+                          ${entity.name}
+                        </paper-item-body>
+                        <ha-switch
+                          .checked=${entity.data1 > 0}
+                          @change=${this._toggleOnLevel}
+                          .device_address=${device.address}
+                          .group=${entity.data3}
+                        ></ha-switch>
+                      </paper-icon-item>
+                    `,
+                  )};
+            </ha-card>
+          `,
         )}
 
-        <ha-card
-          outlined
-          .header=${this.insteon.localize("scenes.scene.devices.add")}
-        >
+        <ha-card outlined .header=${this.insteon.localize("scenes.scene.devices.add")}>
           <div class="card-content">
             <insteon-device-picker
               @value-changed=${this._devicePicked}
@@ -367,23 +315,24 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
       const haDevice = this._insteonToHaDeviceMap[address] || undefined;
       const deviceEntities = haDevice ? haDevice.entities : {};
       const theseEntities: InsteonSceneEntity[] = [];
-      let thisDevice: InsteonSceneDevice | undefined = undefined;
+      let thisDevice: InsteonSceneDevice | undefined;
 
       for (const [group, entity] of Object.entries(deviceEntities)) {
-        const insteonEntityData: InsteonSceneDeviceData | undefined =
-          links.find((link) => link.data3 == +group);
+        const insteonEntityData: InsteonSceneDeviceData | undefined = links.find(
+          (link) => link.data3 === +group,
+        );
         const data1 = insteonEntityData?.data1 || 0;
         const data2 = insteonEntityData?.data2 || 28;
         const data3 = insteonEntityData?.data3 || +group;
-        const is_in_scene = insteonEntityData ? true : false;
+        const is_in_scene = !!insteonEntityData;
         const stateObj = this.hass.states[entity.entity_id];
         theseEntities.push({
           entity_id: entity.entity_id,
           name: stateObj
             ? computeStateName(stateObj)
             : entity.name
-            ? entity.name
-            : entity.original_name!,
+              ? entity.name
+              : entity.original_name!,
           is_in_scene: is_in_scene,
           data1: data1,
           data2: data2,
@@ -395,7 +344,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
           name: computeDeviceName(
             haDevice.device,
             this.hass,
-            this._deviceEntityLookup[haDevice.device.id]
+            this._deviceEntityLookup[haDevice.device.id],
           ),
           entities: theseEntities,
         };
@@ -423,7 +372,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
       const address: string = haDevice.identifiers[0][1];
       const entities: { [group: number]: EntityRegistryEntry } = {};
       this._entityRegistryEntries
-        .filter((entity) => entity.device_id == haDevice.id)
+        .filter((entity) => entity.device_id === haDevice.id)
         .map((entity) => {
           let group = +entity.unique_id.split("_")[1];
           if (Number.isNaN(group)) {
@@ -444,9 +393,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
       if (!(entity.device_id in this._deviceEntityLookup)) {
         this._deviceEntityLookup[entity.device_id] = [];
       }
-      if (
-        !this._deviceEntityLookup[entity.device_id].includes(entity.entity_id)
-      ) {
+      if (!this._deviceEntityLookup[entity.device_id].includes(entity.entity_id)) {
         this._deviceEntityLookup[entity.device_id].push(entity.entity_id);
       }
     }
@@ -465,21 +412,16 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     const address = (ev.currentTarget as any).device_address;
     const group = (ev.currentTarget as any).group;
     const device = this._scene!.devices[address];
-    let link = device.find((curr_link) => curr_link.data3 == +group);
+    let link = device.find((curr_link) => curr_link.data3 === +group);
     if (!link) {
       this._selectEntity(true, device, group);
-      link = device.find((curr_link) => curr_link.data3 == +group);
+      link = device.find((curr_link) => curr_link.data3 === +group);
     }
     const haDevice = this._insteonToHaDeviceMap[address];
     const deviceEntities = haDevice.entities || {};
     const entity = deviceEntities[+group];
     if (DIMMABLE_DOMAINS.includes(computeDomain(entity.entity_id))) {
-      this._setOnLevel(
-        address,
-        group,
-        link!.data1,
-        link!.data2 == 0 ? 28 : link!.data2
-      );
+      this._setOnLevel(address, group, link!.data1, link!.data2 === 0 ? 28 : link!.data2);
     }
   }
 
@@ -487,7 +429,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     address: string,
     group: number,
     on_level: number,
-    ramp_rate: number
+    ramp_rate: number,
   ): Promise<void> {
     showInsteonSetOnLevelDialog(this, {
       hass: this.hass,
@@ -498,29 +440,19 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
       value: on_level,
       ramp_rate: ramp_rate,
       callback: async (address_out, group_out, on_level_out, ramp_rate_out) =>
-        this._handleSetOnLevel(
-          address_out,
-          group_out,
-          on_level_out,
-          ramp_rate_out
-        ),
+        this._handleSetOnLevel(address_out, group_out, on_level_out, ramp_rate_out),
     });
     history.back();
   }
 
-  private _handleSetOnLevel(
-    address: string,
-    group: number,
-    on_level: number,
-    ramp_rate: number
-  ) {
+  private _handleSetOnLevel(address: string, group: number, on_level: number, ramp_rate: number) {
     const device = this._scene!.devices[address];
-    const existing_link = device.find((link) => link.data3 == +group);
-    if (existing_link!.data1 != on_level) {
+    const existing_link = device.find((link) => link.data3 === +group);
+    if (existing_link!.data1 !== on_level) {
       existing_link!.data1 = on_level;
       this._dirty = true;
     }
-    if (existing_link!.data2 != ramp_rate) {
+    if (existing_link!.data2 !== ramp_rate) {
       existing_link!.data2 = ramp_rate;
       this._dirty = true;
     }
@@ -534,7 +466,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     this._scene = await fetchInsteonScene(this.hass, +this.sceneId!);
     for (const address in Object.keys(this._scene.devices)) {
       const ha_device = this._deviceRegistryEntries.find(
-        (haDevice) => haDevice.identifiers[0][1] === address
+        (haDevice) => haDevice.identifiers[0][1] === address,
       );
       const device_id = ha_device?.id || undefined;
       if (device_id) {
@@ -546,7 +478,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
 
   private _pickDevice(deviceId: string) {
     const haDevice = this._deviceRegistryEntries.find((haCurrDevice) => {
-      return haCurrDevice.id == deviceId;
+      return haCurrDevice.id === deviceId;
     });
     const address = haDevice?.identifiers[0][1];
     if (!address) {
@@ -587,13 +519,9 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     this._dirty = true;
   }
 
-  private _selectEntity(
-    checked: boolean,
-    device: InsteonSceneDeviceData[],
-    group: number
-  ) {
+  private _selectEntity(checked: boolean, device: InsteonSceneDeviceData[], group: number) {
     if (checked) {
-      const existing_link = device.find((link) => link.data3 == +group);
+      const existing_link = device.find((link) => link.data3 === +group);
       if (existing_link) {
         return;
       }
@@ -606,7 +534,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
       };
       device.push(link);
     } else {
-      const existing_link = device.findIndex((link) => link.data3 == +group);
+      const existing_link = device.findIndex((link) => link.data3 === +group);
       if (existing_link !== -1) {
         device.splice(existing_link, 1);
       }
@@ -619,10 +547,10 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     const checked = (ev.target as any).checked;
     const group = (ev.target as any).group;
     const device = this._scene!.devices[address];
-    let existing_link = device.find((link) => link.data3 == +group);
+    let existing_link = device.find((link) => link.data3 === +group);
     if (!existing_link) {
       this._selectEntity(true, device, +group);
-      existing_link = device.find((link) => link.data3 == +group);
+      existing_link = device.find((link) => link.data3 === +group);
     }
     if (checked) {
       existing_link!.data1 = 255;
@@ -710,7 +638,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     if (!result.result) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.scene_write"),
-        confirmText: this.insteon!.localize("common.close")
+        confirmText: this.insteon!.localize("common.close"),
       });
       history.back();
     }
@@ -721,7 +649,7 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
     if (!this._checkDeviceEntitySelections()) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.scene_device_no_entities"),
-        confirmText: this.insteon!.localize("common.close")
+        confirmText: this.insteon!.localize("common.close"),
       });
       history.back();
       return;
@@ -740,30 +668,23 @@ export class InsteonSceneEditor extends KeyboardShortcutMixin(LitElement) {
         links.push(link);
       });
     });
-    const result = await saveInsteonScene(
-      this.hass,
-      this._scene!.group,
-      links,
-      this._scene!.name
-    );
+    const result = await saveInsteonScene(this.hass, this._scene!.group, links, this._scene!.name);
     this._saving = false;
     this._dirty = false;
     if (!result.result) {
       showAlertDialog(this, {
         text: this.insteon!.localize("common.error.scene_write"),
-        confirmText: this.insteon!.localize("common.close")
+        confirmText: this.insteon!.localize("common.close"),
       });
       history.back();
-    } else {
-      if (!this.sceneId) {
-        navigate(`/insteon/scene/${result.scene_id}`, { replace: true });
-      }
+    } else if (!this.sceneId) {
+      navigate(`/insteon/scene/${result.scene_id}`, { replace: true });
     }
   }
 
   private _checkDeviceEntitySelections(): boolean {
     for (const [_, links] of Object.entries(this._scene!.devices)) {
-      if (links.length == 0) {
+      if (links.length === 0) {
         return false;
       }
     }

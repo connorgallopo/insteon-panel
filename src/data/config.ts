@@ -1,7 +1,6 @@
-
-import { HomeAssistant } from "@ha/types";
+import type { HomeAssistant } from "@ha/types";
 import type { HaFormSchema, HaFormDataContainer } from "@ha/components/ha-form/types";
-import { InsteonX10Device, X10HouseCode, X10UnitCode } from "./insteon"
+import type { InsteonX10Device, X10HouseCode, X10UnitCode } from "./insteon";
 
 export interface InsteonPLMConfig {
   device: string;
@@ -23,9 +22,7 @@ export interface InsteonHubv2Config {
   hub_version: 2;
 }
 
-export interface X10Platrom {
-
-}
+export interface X10Platrom {}
 
 export interface InsteonDeviceOverride {
   address: string;
@@ -40,7 +37,7 @@ export interface BrokenLink {
   mem_addr: number;
   in_use: boolean;
   group: number;
-  is_controller: boolean
+  is_controller: boolean;
   highwater: boolean;
   target: string;
   target_name: string;
@@ -52,18 +49,15 @@ export interface BrokenLink {
     "missing_responder",
     "missing_target",
     "found",
-    "target_db_not_loaded"
-  ]
+    "target_db_not_loaded",
+  ];
 }
 
 export interface UnknownDevice {
   address: string;
 }
 
-export type InsteonModemConfig =
-  | InsteonPLMConfig
-  | InsteonHubv1Config
-  | InsteonHubv2Config;
+export type InsteonModemConfig = InsteonPLMConfig | InsteonHubv1Config | InsteonHubv2Config;
 
 export interface InsteonConfig {
   modem_config: InsteonModemConfig;
@@ -76,34 +70,29 @@ export interface ConfigUpdateStatus {
 }
 
 export interface X10DeviceRecord {
-  housecode: X10HouseCode,
-  unitcode: typeof X10UnitCode,
-  platform: ""
+  housecode: X10HouseCode;
+  unitcode: typeof X10UnitCode;
+  platform: "";
 }
 
-export const fetchInsteonConfig = (
-  hass: HomeAssistant,
-  ): Promise<InsteonConfig> =>
-    hass.callWS({
-      type: "insteon/config/get",
-});
+export const fetchInsteonConfig = (hass: HomeAssistant): Promise<InsteonConfig> =>
+  hass.callWS({
+    type: "insteon/config/get",
+  });
 
-export const fetchModemConfigSchema = (
-  hass: HomeAssistant,
-  ): Promise<HaFormSchema[]> =>
-    hass.callWS({
+export const fetchModemConfigSchema = (hass: HomeAssistant): Promise<HaFormSchema[]> =>
+  hass.callWS({
     type: "insteon/config/get_modem_schema",
-});
-
+  });
 
 export const updateModemConfig = (
-    hass: HomeAssistant,
-    config: HaFormDataContainer,
-  ): Promise<ConfigUpdateStatus> =>
-    hass.callWS({
-      type: "insteon/config/update_modem_config",
-      config: config,
-});
+  hass: HomeAssistant,
+  config: HaFormDataContainer,
+): Promise<ConfigUpdateStatus> =>
+  hass.callWS({
+    type: "insteon/config/update_modem_config",
+    config: config,
+  });
 
 export const addDeviceOverride = (
   hass: HomeAssistant,
@@ -112,55 +101,49 @@ export const addDeviceOverride = (
   hass.callWS({
     type: "insteon/config/device_override/add",
     override: override,
-});
+  });
 
 export const removeDeviceOverride = (
   hass: HomeAssistant,
   device_address: string,
 ): Promise<ConfigUpdateStatus> =>
-    hass.callWS({
-      type: "insteon/config/device_override/remove",
-      device_address: device_address,
-});
+  hass.callWS({
+    type: "insteon/config/device_override/remove",
+    device_address: device_address,
+  });
 
-export const fetchBrokenLinks = (
-  hass: HomeAssistant
-): Promise<BrokenLink[]> =>
-    hass.callWS({
-      type: "insteon/config/get_broken_links"
-});
+export const fetchBrokenLinks = (hass: HomeAssistant): Promise<BrokenLink[]> =>
+  hass.callWS({
+    type: "insteon/config/get_broken_links",
+  });
 
-export const fetchUnknownDevices = (
-  hass: HomeAssistant
-): Promise<string[]> =>
-    hass.callWS({
-      type: "insteon/config/get_unknown_devices"
-});
-
+export const fetchUnknownDevices = (hass: HomeAssistant): Promise<string[]> =>
+  hass.callWS({
+    type: "insteon/config/get_unknown_devices",
+  });
 
 export const X10DeviceSchema = (platform: string | undefined): HaFormSchema[] => {
   let dim_steps: HaFormSchema;
-  platform == "light"
-    ?
-      dim_steps = {
-      "type": "integer",
-      "valueMin": -1,
-      "valueMax": 255,
-      "name": "dim_steps",
-      "required": true,
-      "default": 22
-    }
-    : dim_steps = {
-      "type": "constant",
-      "name": "dim_steps",
-      "required": false,
-      "default": "",
-    }
+  platform === "light"
+    ? (dim_steps = {
+        type: "integer",
+        valueMin: -1,
+        valueMax: 255,
+        name: "dim_steps",
+        required: true,
+        default: 22,
+      })
+    : (dim_steps = {
+        type: "constant",
+        name: "dim_steps",
+        required: false,
+        default: "",
+      });
 
   return [
     {
-      "type": "select",
-      "options": [
+      type: "select",
+      options: [
         ["a", "a"],
         ["b", "b"],
         ["c", "c"],
@@ -176,14 +159,14 @@ export const X10DeviceSchema = (platform: string | undefined): HaFormSchema[] =>
         ["m", "m"],
         ["n", "n"],
         ["o", "o"],
-        ["p", "p"]
+        ["p", "p"],
       ],
-      "name": "housecode",
-      "required": true
+      name: "housecode",
+      required: true,
     },
     {
-      "type": "select",
-      "options": [
+      type: "select",
+      options: [
         ["1", "1"],
         ["2", "2"],
         ["3", "3"],
@@ -201,62 +184,59 @@ export const X10DeviceSchema = (platform: string | undefined): HaFormSchema[] =>
         ["15", "15"],
         ["16", "16"],
       ],
-      "name": "unitcode",
-      "required": true
+      name: "unitcode",
+      required: true,
     },
     {
-      "type": "select",
-      "options": [
+      type: "select",
+      options: [
         ["binary_sensor", "binary_sensor"],
         ["switch", "switch"],
-        ["light", "light"]
+        ["light", "light"],
       ],
-      "name": "platform",
-      "required": true
+      name: "platform",
+      required: true,
     },
-    dim_steps
-  ]
-}
-
+    dim_steps,
+  ];
+};
 
 export function modemIsPlm(config: any): config is InsteonPLMConfig {
   return "device" in config;
 }
 
 export const addPlmManualConfig = (manual: boolean, schema: HaFormSchema[]) => {
-
-  const plm_schema = schema.slice()
-  plm_schema.push(
-    {
-      "type": "boolean",
-      "required": false,
-      "name": "manual_config"
-    })
+  const plm_schema = schema.slice();
+  plm_schema.push({
+    type: "boolean",
+    required: false,
+    name: "manual_config",
+  });
 
   manual
     ? plm_schema.push({
-      type: "string",
-      name: "plm_manual_config",
-      required: true
-    })
+        type: "string",
+        name: "plm_manual_config",
+        required: true,
+      })
     : null;
-  return plm_schema
-}
+  return plm_schema;
+};
 
 export const DeviceOverrideSchema: HaFormSchema[] = [
   {
     name: "address",
     type: "string",
-    required: true
+    required: true,
   },
   {
     name: "cat",
     type: "string",
-    required: true
+    required: true,
   },
   {
     name: "subcat",
     type: "string",
-    required: true
-  }
-]
+    required: true,
+  },
+];

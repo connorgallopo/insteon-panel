@@ -1,14 +1,10 @@
 import { customElement, property, state } from "lit/decorators";
 import { mdiNetwork, mdiFolderMultipleOutline } from "@mdi/js";
-import {
-  HassRouterPage,
-  RouterOptions,
-} from "@ha/layouts/hass-router-page";
-import { HomeAssistant, Route } from "@ha/types";
-import { PageNavigation } from "@ha/layouts/hass-tabs-subpage";
-import { Insteon } from "../data/insteon";
-
-
+import type { RouterOptions } from "@ha/layouts/hass-router-page";
+import { HassRouterPage } from "@ha/layouts/hass-router-page";
+import type { HomeAssistant, Route } from "@ha/types";
+import type { PageNavigation } from "@ha/layouts/hass-tabs-subpage";
+import type { Insteon } from "../data/insteon";
 
 export function get_insteon_devices_tabs(localize: (string: string) => string): PageNavigation[] {
   return [
@@ -25,8 +21,7 @@ export function get_insteon_devices_tabs(localize: (string: string) => string): 
   ];
 }
 
-export var insteonDeviceTabs : PageNavigation[] | undefined = undefined;
-
+export var insteonDeviceTabs: PageNavigation[] | undefined = undefined;
 
 @customElement("insteon-device-router")
 class InsteonDeviceRouter extends HassRouterPage {
@@ -55,8 +50,8 @@ class InsteonDeviceRouter extends HassRouterPage {
       },
       config: {
         tag: "insteon-device-redirect",
-        load: () => import("./insteon-device-redirect")
-      }
+        load: () => import("./insteon-device-redirect"),
+      },
     },
   };
 

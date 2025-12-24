@@ -1,5 +1,5 @@
-import { Repository } from "../data/common";
-import { Insteon } from "../data/insteon";
+import type { Repository } from "../data/common";
+import type { Insteon } from "../data/insteon";
 
 const generateUniqueTag = (repository: Repository, version?: string): string =>
   String(
@@ -8,7 +8,7 @@ const generateUniqueTag = (repository: Repository, version?: string): string =>
       repository.installed_version ||
       repository.selected_tag ||
       repository.available_version
-    ).replace(/\D+/g, "")}`
+    ).replace(/\D+/g, "")}`,
   );
 
 export const generateLovelaceURL = (options: {

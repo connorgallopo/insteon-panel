@@ -1,19 +1,8 @@
 import type { Ripple } from "@material/mwc-ripple";
 import { RippleHandlers } from "@material/mwc-ripple/ripple-handlers";
-import {
-  CSSResultGroup,
-  LitElement,
-  TemplateResult,
-  css,
-  html,
-} from "lit";
-import {
-  customElement,
-  eventOptions,
-  property,
-  queryAsync,
-  state,
-} from "lit/decorators";
+import type { CSSResultGroup, TemplateResult } from "lit";
+import { LitElement, css, html } from "lit";
+import { customElement, eventOptions, property, queryAsync, state } from "lit/decorators";
 import "@ha/components/ha-card";
 import "@ha/components/ha-ripple";
 import "@ha/components/ha-button";
@@ -51,38 +40,31 @@ export class InsteonUtilsCard extends LitElement {
         @touchstart=${this.handleRippleActivate}
         @touchend=${this.handleRippleDeactivate}
         @touchcancel=${this.handleRippleDeactivate}
-        >
+      >
         ${this.action_url
-        ? html`<a href=${this.action_url}>
-            ${this._generateCard()}
-          </a>`
-        : this._generateCard()}
+          ? html`<a href=${this.action_url}> ${this._generateCard()} </a>`
+          : this._generateCard()}
       </div>
     `;
   }
 
   private _generateCard() {
     return html`
-    <ha-card outlined>
+      <ha-card outlined>
         ${this._shouldRenderRipple ? html`<ha-ripple></ha-ripple>` : ""}
         <div class="header">
           <slot name="icon"></slot>
           <div class="info">${this.title}</div>
-          <ha-icon-next
-            class="header-button"
-          ></ha-icon-next>
+          <ha-icon-next class="header-button"></ha-icon-next>
         </div>
 
         ${this.action_text
-        ? html`
-        <div class="card-actions">
-            <ha-button appearance="plain">
-              ${this.action_text}
-            </ha-button>
-        </div>`
-        : ""}
-    </ha-card>
-    `
+          ? html` <div class="card-actions">
+              <ha-button appearance="plain"> ${this.action_text} </ha-button>
+            </div>`
+          : ""}
+      </ha-card>
+    `;
   }
 
   private _rippleHandlers: RippleHandlers = new RippleHandlers(() => {

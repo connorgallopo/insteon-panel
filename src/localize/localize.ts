@@ -28,16 +28,8 @@ function get_lang_value(keys: string[], language) {
   return value;
 }
 
-export function localize(
-  language: string,
-  key: string,
-  replace?: Record<string, any>,
-): string {
-  let lang = (
-    language ||
-    localStorage.getItem("selectedLanguage") ||
-    DEFAULT_LANGUAGE
-  )
+export function localize(language: string, key: string, replace?: Record<string, any>): string {
+  let lang = (language || localStorage.getItem("selectedLanguage") || DEFAULT_LANGUAGE)
     .replace(/['"]+/g, "")
     .replace("-", "_");
 
@@ -56,8 +48,7 @@ export function localize(
   const keys = key.split(".");
 
   const translatedValue =
-    get_lang_value(keys, languages[lang]) ||
-    get_lang_value(keys, languages[DEFAULT_LANGUAGE]);
+    get_lang_value(keys, languages[lang]) || get_lang_value(keys, languages[DEFAULT_LANGUAGE]);
 
   if (!translatedValue) {
     logger.error(`Translation problem with '${key}' for '${lang}'`);
@@ -66,9 +57,7 @@ export function localize(
 
   const messageKey = key + translatedValue;
 
-  let translatedMessage = _localizationCache[messageKey] as
-    | IntlMessageFormat
-    | undefined;
+  let translatedMessage = _localizationCache[messageKey] as IntlMessageFormat | undefined;
 
   if (!translatedMessage) {
     try {

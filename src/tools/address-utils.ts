@@ -1,18 +1,18 @@
 export const checkAddress = (address: string): boolean => {
   const addressId = toAddressId(address);
-  if (addressId.length != 6) {
+  if (addressId.length !== 6) {
     return false;
   }
-  return checkHexNumber(addressId)
+  return checkHexNumber(addressId);
 };
 
 export const checkHexNumber = (value: string): boolean => {
-  if (value.substring(0, 2).toLocaleLowerCase() == "0x") {
-    value = value.substring(2)
+  if (value.substring(0, 2).toLocaleLowerCase() === "0x") {
+    value = value.substring(2);
   }
 
-  const check_value = [...value]
-  if (check_value.length % 2 != 0) {
+  const check_value = [...value];
+  if (check_value.length % 2 !== 0) {
     return false;
   }
   for (let i = 0; i < check_value.length; i++) {
@@ -21,7 +21,7 @@ export const checkHexNumber = (value: string): boolean => {
     }
   }
   return true;
-}
+};
 
 export const checkValidHexValue = (value: string): boolean => {
   const valid_chars = [
@@ -42,16 +42,14 @@ export const checkValidHexValue = (value: string): boolean => {
     "e",
     "f",
   ];
-  return valid_chars.includes(value.toLocaleLowerCase())
-}
+  return valid_chars.includes(value.toLocaleLowerCase());
+};
 
-export const toAddressId = ((address: string) => address.toLocaleLowerCase().split(".").join(""))
+export const toAddressId = (address: string) => address.toLocaleLowerCase().split(".").join("");
 
-export const toAddress = ((address: string) => {
+export const toAddress = (address: string) => {
   const addressId = toAddressId(address);
-  return [
-    addressId.substring(0, 2),
-    addressId.substring(2, 4),
-    addressId.substring(4, 6)
-  ].join(".").toLocaleUpperCase()
-});
+  return [addressId.substring(0, 2), addressId.substring(2, 4), addressId.substring(4, 6)]
+    .join(".")
+    .toLocaleUpperCase();
+};

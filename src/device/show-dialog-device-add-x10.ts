@@ -1,12 +1,12 @@
 import { fireEvent } from "@ha/common/dom/fire_event";
-import { Insteon } from "../data/insteon";
+import type { Insteon } from "../data/insteon";
 import type { HomeAssistant } from "@ha/types";
 
 export interface insteonDeviceAddX10DialogParams {
   hass: HomeAssistant;
   insteon: Insteon;
   title: string;
-  callback: () => Promise<void>,
+  callback: () => Promise<void>;
 }
 
 export const loadInsteonDeviceAddX10 = () =>
@@ -14,7 +14,7 @@ export const loadInsteonDeviceAddX10 = () =>
 
 export const showDeviceAddX10Dialog = (
   element: HTMLElement,
-  insteonDeviceAddX10DialogParams: insteonDeviceAddX10DialogParams
+  insteonDeviceAddX10DialogParams: insteonDeviceAddX10DialogParams,
 ): void => {
   fireEvent(element, "show-dialog", {
     dialogTag: "dialog-device-add-x10",

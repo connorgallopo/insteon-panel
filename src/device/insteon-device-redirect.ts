@@ -1,15 +1,11 @@
-
-import {
-  LitElement,
-  PropertyValues, TemplateResult
-} from "lit";
+import type { PropertyValues, TemplateResult } from "lit";
+import { LitElement } from "lit";
 import { customElement, property } from "lit/decorators";
-import { HomeAssistant } from "@ha/types";
+import type { HomeAssistant } from "@ha/types";
 import { navigate } from "@ha/common/navigate";
 import { fetchDeviceRegistry } from "@ha/data/device_registry";
-import { Insteon } from "../data/insteon"
+import type { Insteon } from "../data/insteon";
 import { toAddressId } from "tools/address-utils";
-
 
 @customElement("insteon-device-redirect")
 class InsteonDeviceRedirect extends LitElement {
@@ -22,30 +18,29 @@ class InsteonDeviceRedirect extends LitElement {
   protected firstUpdated(changedProps: PropertyValues) {
     super.firstUpdated(changedProps);
     if (this.deviceId && this.hass) {
-      if (this.deviceId.length == 6) {
-        this._getHaDeviceId()
+      if (this.deviceId.length === 6) {
+        this._getHaDeviceId();
       } else {
-        navigate("/insteon/device/properties/" + this.deviceId)
+        navigate("/insteon/device/properties/" + this.deviceId);
       }
     }
   }
 
-  protected render(): TemplateResult | void {
-
-  }
+  protected render(): TemplateResult | void {}
 
   private async _getHaDeviceId() {
     const allDevices = await fetchDeviceRegistry(this.hass.connection);
     const insteonDevices = allDevices.filter(
       (device) =>
-        device.config_entries &&
-        device.config_entries.includes(this.insteon.config_entry.entry_id),
+        device.config_entries && device.config_entries.includes(this.insteon.config_entry.entry_id),
     );
     const haDevice = insteonDevices.filter(
-      (device) => (device.name ? toAddressId(device.name?.substring(device.name.length - 8)) : "") == this.deviceId
+      (device) =>
+        (device.name ? toAddressId(device.name?.substring(device.name.length - 8)) : "") ===
+        this.deviceId,
     );
 
-    navigate("/insteon/device/properties/" + haDevice[0].id)
+    navigate("/insteon/device/properties/" + haDevice[0].id);
   }
 }
 

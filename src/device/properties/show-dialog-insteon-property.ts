@@ -1,8 +1,7 @@
 import { fireEvent } from "@ha/common/dom/fire_event";
-import { Insteon } from "../../data/insteon";
+import type { Insteon, Property } from "../../data/insteon";
 import type { HomeAssistant } from "@ha/types";
 import type { HaFormSchema } from "@ha/components/ha-form/types";
-import type { Property } from "../../data/insteon";
 
 export interface InsteonPropertyDialogParams {
   hass: HomeAssistant;
@@ -18,7 +17,7 @@ export const loadInsteonPropertyDialog = () =>
 
 export const showInsteonPropertyDialog = (
   element: HTMLElement,
-  insteonPropertyParams: InsteonPropertyDialogParams
+  insteonPropertyParams: InsteonPropertyDialogParams,
 ): void => {
   fireEvent(element, "show-dialog", {
     dialogTag: "dialog-insteon-property",
