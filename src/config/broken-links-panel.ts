@@ -92,14 +92,12 @@ export class BrokenLinksPanel extends LitElement {
         sortable: true,
         filterable: true,
         direction: "asc",
-        width: "20%",
       },
       group: {
         title: this.insteon.localize("utils.broken_links.fields.group"),
         sortable: true,
         filterable: true,
         direction: "asc",
-        width: "5%",
       },
       controller: {
         title: this.insteon.localize("aldb.fields.mode"),
@@ -112,14 +110,13 @@ export class BrokenLinksPanel extends LitElement {
         sortable: true,
         filterable: true,
         direction: "asc",
-        width: "8%",
       },
       target_name: {
         title: this.insteon.localize("utils.broken_links.fields.target"),
         sortable: true,
         filterable: true,
+        groupable: true,
         direction: "asc",
-        width: "20%",
       },
       status: {
         title: this.insteon.localize("utils.broken_links.fields.status"),
@@ -129,9 +126,8 @@ export class BrokenLinksPanel extends LitElement {
         sortable: true,
         filterable: true,
         direction: "asc",
-        width: "15%",
       },
-      recommneation: {
+      recommendation: {
         title: this.insteon.localize("utils.broken_links.fields.recommendation"),
         template: (record: BrokenLink) => {
           return html`${this.insteon.localize("utils.broken_links.actions." + record.status)}`;
@@ -139,11 +135,9 @@ export class BrokenLinksPanel extends LitElement {
         sortable: true,
         filterable: true,
         direction: "asc",
-        width: "15%",
       },
       actions: {
         title: "",
-        width: this.narrow ? undefined : "5%",
         type: "overflow-menu",
         template: (record) => html`
           <ha-icon-overflow-menu
@@ -269,10 +263,9 @@ export class BrokenLinksPanel extends LitElement {
     return html`
       <hass-tabs-subpage-data-table
         .hass=${this.hass}
-        .narrow=${this.narrow}
         .data=${this._insteonBrokenLinks(this._broken_links)}
         .columns=${this._columns()}
-        .localizeFunc=${this.insteon.localize}
+        .localizeFunc=${this.hass.localize}
         .mainPage=${false}
         .hasFab=${false}
         .tabs=${[

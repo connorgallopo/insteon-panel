@@ -63,12 +63,12 @@ export class UnknownDevicesPanel extends LitElement {
         sortable: true,
         filterable: true,
         direction: "asc",
-        grows: true,
+        showNarrow: true,
       },
       actions: {
         title: "",
-        width: this.narrow ? undefined : "5%",
         type: "overflow-menu",
+        showNarrow: true,
         template: (record) => html`
           <ha-icon-overflow-menu
             .hass=${this.hass}
@@ -150,7 +150,7 @@ export class UnknownDevicesPanel extends LitElement {
         .narrow=${this.narrow}
         .data=${this._insteonUnknownDevices(this._unknown_devices)}
         .columns=${this._columns()}
-        .localizeFunc=${this.insteon.localize}
+        .localizeFunc=${this.hass.localize}
         .mainPage=${false}
         .hasFab=${false}
         .tabs=${[
