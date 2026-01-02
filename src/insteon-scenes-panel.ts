@@ -1,16 +1,16 @@
 import { mdiPlus, mdiLightbulbGroup, mdiLightbulbGroupOff } from "@mdi/js";
-import type { CSSResultGroup, TemplateResult } from "lit";
-import { css, html, LitElement } from "lit";
+import type { TemplateResult } from "lit";
+import { html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators";
 import memoizeOne from "memoize-one";
 import type {
+  DataTableColumnContainer,
   DataTableRowData,
   RowClickedEvent,
   SelectionChangedEvent,
   SortingChangedEvent,
 } from "@ha/components/data-table/ha-data-table";
 import "@ha/layouts/hass-tabs-subpage-data-table";
-import { haStyle } from "@ha/resources/styles";
 import type { HomeAssistant, Route } from "@ha/types";
 import type { Insteon } from "./data/insteon";
 import type { InsteonScene, InsteonScenes } from "./data/scene";
@@ -67,75 +67,51 @@ export class InsteonScenesPanel extends LitElement {
     });
   }
 
-  private _columns = memoizeOne((narrow: boolean) =>
-    narrow
-      ? {
-          group: {
-            title: this.insteon.localize("scenes.fields.group"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "10%",
-          },
-          name: {
-            title: this.insteon.localize("scenes.fields.name"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            grows: true,
-          },
-          num_devices: {
-            title: this.insteon.localize("scenes.fields.num_devices"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "10%",
-          },
-        }
-      : {
-          group: {
-            title: this.insteon.localize("scenes.fields.group"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "10%",
-          },
-          name: {
-            title: this.insteon.localize("scenes.fields.name"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            grows: true,
-          },
-          num_devices: {
-            title: this.insteon.localize("scenes.fields.num_devices"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "10%",
-          },
-          actions: {
-            title: this.insteon.localize("scenes.fields.actions"),
-            type: "icon-button",
-            template: (_toggle, scene) => html`
-              <ha-icon-button
-                .scene=${scene}
-                .hass=${this.hass}
-                .label=${this.hass.localize("ui.panel.config.scene.picker.activate_scene")}
-                .path=${mdiLightbulbGroup}
-                @click=${this._activateScene}
-              ></ha-icon-button>
-              <ha-icon-button
-                .scene=${scene}
-                .hass=${this.hass}
-                .label=${this.hass.localize("ui.panel.config.scene.picker.activate_scene")}
-                .path=${mdiLightbulbGroupOff}
-                @click=${this._deactivateScene}
-              ></ha-icon-button>
-            `,
-            width: "150px",
-          },
-        },
+  private _columns = memoizeOne(
+    (): DataTableColumnContainer => ({
+      group: {
+        title: this.insteon.localize("scenes.fields.group"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: true,
+      },
+      name: {
+        title: this.insteon.localize("scenes.fields.name"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: true,
+      },
+      num_devices: {
+        title: this.insteon.localize("scenes.fields.num_devices"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: true,
+      },
+      actions: {
+        title: this.insteon.localize("scenes.fields.actions"),
+        type: "flex",
+        template: (scene) => html`
+          <ha-icon-button
+            .scene=${scene}
+            .hass=${this.hass}
+            .label=${this.insteon.localize("scenes.scene.activate")}
+            .path=${mdiLightbulbGroup}
+            @click=${this._activateScene}
+          ></ha-icon-button>
+          <ha-icon-button
+            .scene=${scene}
+            .hass=${this.hass}
+            .label=${this.insteon.localize("scenes.scene.deactivate")}
+            .path=${mdiLightbulbGroupOff}
+            @click=${this._deactivateScene}
+          ></ha-icon-button>
+        `,
+        showNarrow: true,
+      },
+    }),
   );
 
   private async _activateScene(ev): Promise<void> {
@@ -183,10 +159,10 @@ export class InsteonScenesPanel extends LitElement {
         .route=${this.route}
         id="group"
         .data=${this._records(this._scenes)}
-        .columns=${this._columns(this.narrow)}
+        .columns=${this._columns()}
         @row-click=${this._handleRowClicked}
         clickable
-        .localizeFunc=${this.insteon.localize}
+        .localizeFunc=${this.hass.localize}
         .mainPage=${true}
         .hasFab=${true}
       >
@@ -211,78 +187,6 @@ export class InsteonScenesPanel extends LitElement {
     // eslint-disable-next-line no-console
     console.info("Row clicked received: " + id);
     navigate("/insteon/scene/" + id);
-  }
-
-  static get styles(): CSSResultGroup {
-    return [
-      css`
-        ha-data-table {
-          width: 100%;
-          height: 100%;
-          --data-table-border-width: 0;
-        }
-        :host(:not([narrow])) ha-data-table {
-          height: calc(100vh - 1px - var(--header-height));
-          display: block;
-        }
-        :host([narrow]) hass-tabs-subpage {
-          --main-title-margin: 0;
-        }
-        .table-header {
-          display: flex;
-          align-items: center;
-          --mdc-shape-small: 0;
-          height: 56px;
-        }
-        .search-toolbar {
-          display: flex;
-          align-items: center;
-          color: var(--secondary-text-color);
-        }
-        search-input {
-          --mdc-text-field-fill-color: var(--sidebar-background-color);
-          --mdc-text-field-idle-line-color: var(--divider-color);
-          --text-field-overflow: visible;
-          z-index: 5;
-        }
-        .table-header search-input {
-          display: block;
-          position: absolute;
-          top: 0;
-          right: 0;
-          left: 0;
-        }
-        .search-toolbar search-input {
-          display: block;
-          width: 100%;
-          color: var(--secondary-text-color);
-          --mdc-ripple-color: transparant;
-        }
-        #fab {
-          position: fixed;
-          right: calc(16px + env(safe-area-inset-right));
-          bottom: calc(16px + env(safe-area-inset-bottom));
-          z-index: 1;
-        }
-        :host([narrow]) #fab.tabs {
-          bottom: calc(84px + env(safe-area-inset-bottom));
-        }
-        #fab[is-wide] {
-          bottom: 24px;
-          right: 24px;
-        }
-        :host([rtl]) #fab {
-          right: auto;
-          left: calc(16px + env(safe-area-inset-left));
-        }
-        :host([rtl][is-wide]) #fab {
-          bottom: 24px;
-          left: 24px;
-          right: auto;
-        }
-      `,
-      haStyle,
-    ];
   }
 }
 
