@@ -137,6 +137,7 @@ export class InsteonDevicesPanel extends LitElement {
         title: this.insteon.localize("devices.fields.area"),
         sortable: true,
         filterable: true,
+        groupable: true,
         direction: "asc",
         showNarrow: false,
       },
