@@ -4,7 +4,10 @@ import { LitElement, html } from "lit";
 import type { UnsubscribeFunc } from "home-assistant-js-websocket";
 import { customElement, property, state } from "lit/decorators";
 import memoizeOne from "memoize-one";
-import type { DataTableRowData } from "@ha/components/data-table/ha-data-table";
+import type {
+  DataTableColumnContainer,
+  DataTableRowData,
+} from "@ha/components/data-table/ha-data-table";
 import "@ha/components/ha-fab";
 import "@ha/components/ha-card";
 import "@ha/components/ha-button-menu";
@@ -75,70 +78,53 @@ export class DeviceOverridesPanel extends LitElement {
     ];
   }
 
-  private _columns = memoizeOne((narrow: boolean) =>
-    narrow
-      ? {
-          name: {
-            title: this.insteon.localize("devices.fields.name"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            grows: true,
-          },
-          address: {
-            title: this.insteon.localize("devices.fields.address"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "5hv",
-          },
-        }
-      : {
-          name: {
-            title: this.insteon.localize("devices.fields.name"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            grows: true,
-          },
-          address: {
-            title: this.insteon.localize("devices.fields.address"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "20%",
-          },
-          description: {
-            title: this.insteon.localize("devices.fields.description"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "15%",
-          },
-          model: {
-            title: this.insteon.localize("devices.fields.model"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "15%",
-          },
-          actions: {
-            title: this.insteon.localize("devices.fields.actions"),
-            type: "icon-button",
-            template: (_toggle, override) => html`
-              <ha-icon-button
-                .override=${override}
-                .hass=${this.hass}
-                .insteon=${this.insteon}
-                .action=${() => this._deleteOverride(this.hass, override.address)}
-                .label=${this.insteon.localize("utils.config_device_overrides.actions.delete")}
-                .path=${mdiDelete}
-                @click=${this._confirmDeleteOverride}
-              ></ha-icon-button>
-            `,
-            width: "150px",
-          },
-        },
+  private _columns = memoizeOne(
+    (): DataTableColumnContainer => ({
+      name: {
+        title: this.insteon.localize("devices.fields.name"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: true,
+      },
+      address: {
+        title: this.insteon.localize("devices.fields.address"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: true,
+      },
+      description: {
+        title: this.insteon.localize("devices.fields.description"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: false,
+      },
+      model: {
+        title: this.insteon.localize("devices.fields.model"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: false,
+      },
+      actions: {
+        title: this.insteon.localize("devices.fields.actions"),
+        type: "icon-button",
+        template: (override) => html`
+          <ha-icon-button
+            .override=${override}
+            .hass=${this.hass}
+            .insteon=${this.insteon}
+            .action=${() => this._deleteOverride(this.hass, override.address)}
+            .label=${this.insteon.localize("utils.config_device_overrides.actions.delete")}
+            .path=${mdiDelete}
+            @click=${this._confirmDeleteOverride}
+          ></ha-icon-button>
+        `,
+        showNarrow: true,
+      },
+    }),
   );
 
   private _insteonDevices = memoizeOne(
@@ -171,8 +157,8 @@ export class DeviceOverridesPanel extends LitElement {
         .hass=${this.hass}
         .narrow=${this.narrow}
         .data=${this._insteonDevices(this._device_overrides, this._devices)}
-        .columns=${this._columns(this.narrow)}
-        .localizeFunc=${this.insteon.localize}
+        .columns=${this._columns()}
+        .localizeFunc=${this.hass.localize}
         .mainPage=${false}
         .hasFab=${true}
         .tabs=${[

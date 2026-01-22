@@ -1,15 +1,18 @@
 import { mdiPlus } from "@mdi/js";
 import type { UnsubscribeFunc } from "home-assistant-js-websocket";
-import type { CSSResultGroup, TemplateResult } from "lit";
-import { css, html, LitElement } from "lit";
+import type { TemplateResult } from "lit";
+import { html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators";
 import memoizeOne from "memoize-one";
-import type { DataTableRowData, RowClickedEvent } from "@ha/components/data-table/ha-data-table";
+import type {
+  DataTableColumnContainer,
+  DataTableRowData,
+  RowClickedEvent,
+} from "@ha/components/data-table/ha-data-table";
 import "@ha/components/ha-fab";
 import "@ha/components/ha-card";
 import "@ha/components/ha-button-menu";
 import "@ha/layouts/hass-tabs-subpage-data-table";
-import { haStyle } from "@ha/resources/styles";
 import type { HomeAssistant, Route } from "@ha/types";
 import type { DeviceRegistryEntry } from "@ha/data/device_registry";
 import { subscribeDeviceRegistry } from "@ha/data/device_registry";
@@ -100,61 +103,45 @@ export class InsteonDevicesPanel extends LitElement {
     ];
   }
 
-  private _columns = memoizeOne((narrow: boolean) =>
-    narrow
-      ? {
-          name: {
-            title: this.insteon.localize("devices.fields.name"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            grows: true,
-          },
-          address: {
-            title: this.insteon.localize("devices.fields.address"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "5hv",
-          },
-        }
-      : {
-          name: {
-            title: this.insteon.localize("devices.fields.name"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            grows: true,
-          },
-          address: {
-            title: this.insteon.localize("devices.fields.address"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "20%",
-          },
-          description: {
-            title: this.insteon.localize("devices.fields.description"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "15%",
-          },
-          model: {
-            title: this.insteon.localize("devices.fields.model"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "15%",
-          },
-          area: {
-            title: this.insteon.localize("devices.fields.area"),
-            sortable: true,
-            filterable: true,
-            direction: "asc",
-            width: "15%",
-          },
-        },
+  private _columns = memoizeOne(
+    (): DataTableColumnContainer => ({
+      name: {
+        title: this.insteon.localize("devices.fields.name"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: true,
+      },
+      address: {
+        title: this.insteon.localize("devices.fields.address"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: true,
+      },
+      description: {
+        title: this.insteon.localize("devices.fields.description"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: false,
+      },
+      model: {
+        title: this.insteon.localize("devices.fields.model"),
+        sortable: true,
+        filterable: true,
+        direction: "asc",
+        showNarrow: false,
+      },
+      area: {
+        title: this.insteon.localize("devices.fields.area"),
+        sortable: true,
+        filterable: true,
+        groupable: true,
+        direction: "asc",
+        showNarrow: false,
+      },
+    }),
   );
 
   private _insteonDevices = memoizeOne((devices: DeviceRegistryEntry[]) => {
@@ -185,7 +172,7 @@ export class InsteonDevicesPanel extends LitElement {
         .tabs=${insteonMainTabs}
         .route=${this.route}
         .data=${this._insteonDevices(this._devices)}
-        .columns=${this._columns(this.narrow)}
+        .columns=${this._columns()}
         @row-click=${this._handleRowClicked}
         clickable
         .localizeFunc=${this.hass.localize}
@@ -244,78 +231,6 @@ export class InsteonDevicesPanel extends LitElement {
     // console.info("Row clicked received");
     const id = ev.detail.id;
     navigate("/insteon/device/properties/" + id);
-  }
-
-  static get styles(): CSSResultGroup {
-    return [
-      css`
-        ha-data-table {
-          width: 100%;
-          height: 100%;
-          --data-table-border-width: 0;
-        }
-        :host(:not([narrow])) ha-data-table {
-          height: calc(100vh - 1px - var(--header-height));
-          display: block;
-        }
-        :host([narrow]) hass-tabs-subpage {
-          --main-title-margin: 0;
-        }
-        .table-header {
-          display: flex;
-          align-items: center;
-          --mdc-shape-small: 0;
-          height: 56px;
-        }
-        .search-toolbar {
-          display: flex;
-          align-items: center;
-          color: var(--secondary-text-color);
-        }
-        search-input {
-          --mdc-text-field-fill-color: var(--sidebar-background-color);
-          --mdc-text-field-idle-line-color: var(--divider-color);
-          --text-field-overflow: visible;
-          z-index: 5;
-        }
-        .table-header search-input {
-          display: block;
-          position: absolute;
-          top: 0;
-          right: 0;
-          left: 0;
-        }
-        .search-toolbar search-input {
-          display: block;
-          width: 100%;
-          color: var(--secondary-text-color);
-          --mdc-ripple-color: transparant;
-        }
-        #fab {
-          position: fixed;
-          right: calc(16px + env(safe-area-inset-right));
-          bottom: calc(16px + env(safe-area-inset-bottom));
-          z-index: 1;
-        }
-        :host([narrow]) #fab.tabs {
-          bottom: calc(84px + env(safe-area-inset-bottom));
-        }
-        #fab[is-wide] {
-          bottom: 24px;
-          right: 24px;
-        }
-        :host([rtl]) #fab {
-          right: auto;
-          left: calc(16px + env(safe-area-inset-left));
-        }
-        :host([rtl][is-wide]) #fab {
-          bottom: 24px;
-          left: 24px;
-          right: auto;
-        }
-      `,
-      haStyle,
-    ];
   }
 }
 

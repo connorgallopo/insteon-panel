@@ -46,7 +46,7 @@ class DialogInsteonProperty extends LitElement {
         this._record as PropertyRadioButtons,
         Math.floor(Object.entries(rb_schema.options).length / 2),
       );
-      this._schema = this._radio_button_schema(this._record.value as [[number]] | [], rb_schema);
+      this._schema = this._radio_button_schema(rb_schema);
     } else {
       this._formData[this._record!.name] = this._record!.value;
       this._schema = params.schema;

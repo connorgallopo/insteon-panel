@@ -37,6 +37,8 @@
       "area": "Area",
       "delete": "Delete scene",
       "save": "Save scene",
+      "activate": "Turn on",
+      "deactivate": "Turn off",
       "devices": {
         "header": "Add device",
         "introduction": "Add or remove devices from the scene. Select the entities associated with each device that you want the scene to control.",
