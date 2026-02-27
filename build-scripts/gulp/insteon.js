@@ -39,7 +39,6 @@ gulp.task(
     "lint-types",
     "rspack-prod-insteon",
     "gen-index-insteon-prod",
-    ...// Don't compress running tests
-    (env.isTest() ? [] : ["compress-insteon"]),
+    ...(env.isTest() ? [] : ["compress-insteon"]), // Don't compress running tests
   ),
 );
