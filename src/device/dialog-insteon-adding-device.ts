@@ -66,11 +66,9 @@ class DialogInsteonAddingDevice extends LitElement {
             return html`<p>${deviceText}</p>`;
           })}
         </div>
-        <div class="buttons">
-          <ha-button @click=${this._checkCancel} slot="primaryAction">
-            ${this._buttonText(this._subscribed)}
-          </ha-button>
-        </div>
+        <ha-button @click=${this._checkCancel} slot="primaryAction">
+          ${this._buttonText(this._subscribed)}
+        </ha-button>
       </ha-dialog>
     `;
   }
