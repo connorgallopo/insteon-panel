@@ -1,7 +1,6 @@
 import type { CSSResultGroup, TemplateResult } from "lit";
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from "lit/decorators";
-import { classMap } from "lit/directives/class-map";
 import { fireEvent } from "@ha/common/dom/fire_event";
 import type { PlateLayout } from "./plate-layout";
 import { plateLayout } from "./plate-layout";
@@ -53,7 +52,7 @@ export class InsteonDevicePlate extends LitElement {
   private _key(group: number, content: TemplateResult | string, extraClass = ""): TemplateResult {
     return html`
       <div
-        class="key ${extraClass} ${classMap({ selected: this.selected === group })}"
+        class="key ${extraClass} ${this.selected === group ? "selected" : ""}"
         role="button"
         tabindex="0"
         @click=${() => this._select(group)}
