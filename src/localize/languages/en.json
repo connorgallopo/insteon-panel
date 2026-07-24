@@ -181,6 +181,12 @@
       "caption": "Overview",
       "battery_device": "Battery powered",
       "not_identified": "Not identified",
+      "pane": {
+        "controls": "Controls",
+        "responds_to": "Responds to",
+        "no_links": "No connections",
+        "group": "group"
+      },
       "fields": {
         "model": "Model",
         "address": "Insteon address",
