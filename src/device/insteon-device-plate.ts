@@ -237,13 +237,13 @@ export class InsteonDevicePlate extends LitElement {
       }
 
       .key:focus-visible {
-        outline: 2px solid var(--primary-color);
-        outline-offset: 1px;
+        outline: none;
+        box-shadow: 0 0 0 2px var(--primary-color);
       }
 
       .key.selected {
-        outline: 3px solid var(--primary-color);
-        outline-offset: 2px;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 1.5px var(--primary-color);
         z-index: 1;
       }
 
@@ -348,8 +348,8 @@ export class InsteonDevicePlate extends LitElement {
       }
 
       .krow.selected {
-        outline: none;
-        box-shadow: inset 0 0 0 3px var(--primary-color);
+        border-color: transparent;
+        box-shadow: inset 0 0 0 2px var(--primary-color);
       }
 
       .pos-row-right {
