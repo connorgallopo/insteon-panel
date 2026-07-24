@@ -12,7 +12,7 @@ import "./insteon-device-plate";
 import { plateLayout } from "./plate-layout";
 import type { Insteon, InsteonDevice } from "../data/insteon";
 import type { ALDBRecord } from "../data/device";
-import { fetchInsteonDevice, fetchInsteonALDB } from "../data/device";
+import { fetchInsteonDevice, fetchInsteonALDB, fetchInsteonProperties } from "../data/device";
 
 @customElement("insteon-device-overview-page")
 class InsteonDeviceOverviewPage extends LitElement {
@@ -34,6 +34,8 @@ class InsteonDeviceOverviewPage extends LitElement {
 
   @state() private _selectedGroup?: number;
 
+  @state() private _loadGroup?: number;
+
   protected firstUpdated(changedProps: PropertyValues) {
     super.firstUpdated(changedProps);
     if (this.deviceId && this.hass) {
@@ -51,6 +53,7 @@ class InsteonDeviceOverviewPage extends LitElement {
                 this._aldb = [];
               },
             );
+            this._resolveLoadGroup(device);
           }
         },
         () => {
@@ -190,6 +193,7 @@ class InsteonDeviceOverviewPage extends LitElement {
               .cat=${device.cat}
               .subcat=${device.subcat}
               .selected=${this._selectedGroup}
+              .loadGroup=${this._loadGroup}
               @insteon-button-selected=${this._handleButtonSelected}
             ></insteon-device-plate>
             ${this._renderButtonPane(device)}
@@ -201,6 +205,28 @@ class InsteonDeviceOverviewPage extends LitElement {
 
   private _handleButtonSelected(ev: CustomEvent<{ group: number }>) {
     this._selectedGroup = ev.detail.group;
+  }
+
+  private async _resolveLoadGroup(device: InsteonDevice) {
+    const layout = plateLayout(device.cat, device.subcat);
+    if (layout === "keypad_6" || layout === "keypad_8") {
+      this._loadGroup = 1;
+      return;
+    }
+    if (layout !== "keypad_i3_4") {
+      return;
+    }
+    try {
+      const info = await fetchInsteonProperties(this.hass, device.address, false);
+      const prop = info.properties.find((p) => p.name === "load_button");
+      if (prop && typeof prop.value === "number") {
+        this._loadGroup = prop.value;
+      } else {
+        this._loadGroup = 1;
+      }
+    } catch (_err) {
+      this._loadGroup = 1;
+    }
   }
 
   private _renderButtonPane(device: InsteonDevice): TemplateResult | typeof nothing {
@@ -223,7 +249,10 @@ class InsteonDeviceOverviewPage extends LitElement {
     return html`
       <div class="pane">
         <div class="pane-title">${name}</div>
-        <div class="pane-sub">${this.insteon.localize("device.overview.pane.group")} ${group}</div>
+        <div class="pane-sub">
+          ${this.insteon.localize("device.overview.pane.group")} ${group}
+          ${this._paneRole(device, group)}
+        </div>
         <div class="pane-section">
           <div class="pane-label">${this.insteon.localize("device.overview.pane.controls")}</div>
           ${controls.length === 0
@@ -257,6 +286,15 @@ class InsteonDeviceOverviewPage extends LitElement {
         </div>
       </div>
     `;
+  }
+
+  private _paneRole(device: InsteonDevice, group: number): TemplateResult | typeof nothing {
+    const layout = plateLayout(device.cat, device.subcat);
+    if (!layout.startsWith("keypad") || this._loadGroup === undefined) {
+      return nothing;
+    }
+    const key = group === this._loadGroup ? "load_button" : "scene_button";
+    return html` · ${this.insteon.localize("device.overview.pane." + key)}`;
   }
 
   private _buttonLabel(name: string): string {

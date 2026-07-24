@@ -76,6 +76,22 @@ describe("insteon-device-plate", () => {
     expect(selected[0].textContent).toContain("B");
   });
 
+  it("tags the load button on keypads", async () => {
+    const el = await renderPlate(0x01, 0x59);
+    el.loadGroup = 2;
+    await el.updateComplete;
+    const tags = el.shadowRoot!.querySelectorAll(".load-tag");
+    expect(tags.length).toBe(1);
+    expect(tags[0].closest(".krow")!.textContent).toContain("B");
+  });
+
+  it("does not tag paddles", async () => {
+    const el = await renderPlate(0x01, 0x24);
+    el.loadGroup = 1;
+    await el.updateComplete;
+    expect(el.shadowRoot!.querySelectorAll(".load-tag").length).toBe(0);
+  });
+
   it("fires selection events on click", async () => {
     const el = await renderPlate(0x01, 0x59);
     let got: number | undefined;

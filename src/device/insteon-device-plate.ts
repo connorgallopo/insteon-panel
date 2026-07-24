@@ -19,6 +19,8 @@ export class InsteonDevicePlate extends LitElement {
 
   @property({ type: Number }) public selected?: number;
 
+  @property({ type: Number }) public loadGroup?: number;
+
   protected render(): TemplateResult | typeof nothing {
     const layout = plateLayout(this.cat, this.subcat);
     switch (layout) {
@@ -50,6 +52,8 @@ export class InsteonDevicePlate extends LitElement {
   }
 
   private _key(group: number, content: TemplateResult | string, extraClass = ""): TemplateResult {
+    const isKeypad = ["krow", "wide"].includes(extraClass) || extraClass === "";
+    const showLoad = isKeypad && this.loadGroup !== undefined && this.loadGroup === group;
     return html`
       <div
         class="key ${extraClass} ${this.selected === group ? "selected" : ""}"
@@ -63,7 +67,7 @@ export class InsteonDevicePlate extends LitElement {
           }
         }}
       >
-        ${content}
+        ${content} ${showLoad ? html`<span class="load-tag">LOAD</span>` : nothing}
       </div>
     `;
   }
@@ -259,6 +263,14 @@ export class InsteonDevicePlate extends LitElement {
       .led.grn {
         background: var(--led-grn);
         box-shadow: 0 0 4px var(--led-grn);
+      }
+
+      .load-tag {
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: var(--primary-color);
+        margin-left: 6px;
       }
 
       .airgap {
