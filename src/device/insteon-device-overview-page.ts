@@ -113,7 +113,8 @@ class InsteonDeviceOverviewPage extends LitElement {
           : nothing}
         ${this._firmwareChip(device)}
         <span class="chip ${this._aldbClass(device.aldb_status)}">
-          ${this.insteon.localize("device.overview.fields.aldb_status")}: ${device.aldb_status}
+          ${this.insteon.localize("device.overview.fields.aldb_status")}:
+          ${this._capitalize(device.aldb_status)}
         </span>
         ${device.is_battery
           ? html`<span class="chip">
@@ -299,6 +300,10 @@ class InsteonDeviceOverviewPage extends LitElement {
 
   private _buttonLabel(name: string): string {
     return name.replace(/_/g, " ");
+  }
+
+  private _capitalize(value: string): string {
+    return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
   }
 
   private _onImageLoad(ev) {
