@@ -105,12 +105,16 @@
       "actions": {
         "target_db_not_loaded": "Load All-Link Database",
         "missing_responder": "Delete existing record",
-        "missing_controller": "Create missing record"
+        "missing_controller": "Create missing record",
+        "create_missing": "Create missing record",
+        "delete_record": "Delete this record",
+        "missing_target": "Delete this record"
       },
       "status": {
         "target_db_not_loaded": "All-Link Database not loaded",
         "missing_responder": "Missing responder record",
-        "missing_controller": "Missing controller record"
+        "missing_controller": "Missing controller record",
+        "missing_target": "Target device does not exist"
       },
       "load_aldb": "The All-Link Database for device ",
       "load_aldb_1": " will load in the background. If this is a battery operated device, you will need to trigger the device to wake up before the ALDB will load.",
