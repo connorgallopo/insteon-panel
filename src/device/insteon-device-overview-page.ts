@@ -58,87 +58,74 @@ class InsteonDeviceOverviewPage extends LitElement {
           ? html`<div slot="header" class="narrow-header">${this._device?.name}</div>`
           : ""}
         <div class="container">
-          ${!this.narrow
-            ? html`
-                <div class="page-header">
-                  <h1>${this._device?.name}</h1>
-                  <div class="logo">
-                    <img
-                      src="https://brands.home-assistant.io/insteon/logo.png"
-                      alt="Insteon Logo"
-                      referrerpolicy="no-referrer"
-                      @load=${this._onImageLoad}
-                      @error=${this._onImageError}
-                    />
-                  </div>
-                </div>
-              `
-            : ""}
-          ${this._device ? this._renderIdentity(this._device) : nothing}
+          <div class="page-header">
+            <div class="identity">
+              <h1>${this._device?.name}</h1>
+              ${this._device ? this._renderChips(this._device) : nothing}
+            </div>
+            <div class="logo">
+              <img
+                src="https://brands.home-assistant.io/insteon/logo.png"
+                alt="Insteon Logo"
+                referrerpolicy="no-referrer"
+                @load=${this._onImageLoad}
+                @error=${this._onImageError}
+              />
+            </div>
+          </div>
+          ${this._device ? this._renderButtonsCard(this._device) : nothing}
         </div>
       </hass-tabs-subpage>
     `;
   }
 
-  private _renderIdentity(device: InsteonDevice): TemplateResult {
+  private _renderChips(device: InsteonDevice): TemplateResult {
     const model = [device.description, device.model].filter(Boolean).join(" ");
     return html`
-      <ha-card outlined .header=${this.insteon.localize("device.overview.caption")}>
-        <div class="card-content">
-          ${this._row("model", model)} ${this._row("address", device.address)}
-          ${this._row("category", this._formatCategory(device))}
-          ${this._row("engine_version", device.engine_version?.toUpperCase())}
-          ${this._row("firmware", this._formatFirmware(device))}
-          ${this._row(
-            "aldb_status",
-            html`<span class="chip ${this._aldbClass(device.aldb_status)}"
-              >${device.aldb_status}</span
-            >`,
-          )}
-          ${device.is_battery
-            ? this._row("battery", this.insteon.localize("device.overview.battery_device"))
-            : nothing}
-          ${this._renderButtons(device)}
-        </div>
-      </ha-card>
-    `;
-  }
-
-  private _row(
-    key: string,
-    value?: TemplateResult | string | null,
-  ): TemplateResult | typeof nothing {
-    if (value === undefined || value === null || value === "") {
-      return nothing;
-    }
-    return html`
-      <div class="row">
-        <div class="label">${this.insteon.localize("device.overview.fields." + key)}</div>
-        <div class="value">${value}</div>
+      <div class="chips">
+        ${model ? html`<span class="chip">${model}</span>` : nothing}
+        <span class="chip mono">${device.address}</span>
+        ${this._categoryChip(device)}
+        ${device.engine_version
+          ? html`<span class="chip">${device.engine_version.toUpperCase()}</span>`
+          : nothing}
+        ${this._firmwareChip(device)}
+        <span class="chip ${this._aldbClass(device.aldb_status)}">
+          ${this.insteon.localize("device.overview.fields.aldb_status")}: ${device.aldb_status}
+        </span>
+        ${device.is_battery
+          ? html`<span class="chip">
+              ${this.insteon.localize("device.overview.battery_device")}
+            </span>`
+          : nothing}
       </div>
     `;
   }
 
-  private _formatCategory(device: InsteonDevice): string | undefined {
+  private _categoryChip(device: InsteonDevice): TemplateResult | typeof nothing {
     if (device.cat === undefined || device.cat === null) {
-      return undefined;
+      return nothing;
     }
     const cat = "0x" + device.cat.toString(16).padStart(2, "0").toUpperCase();
     const subcat =
       device.subcat === undefined || device.subcat === null
         ? "?"
         : "0x" + device.subcat.toString(16).padStart(2, "0").toUpperCase();
-    return `${cat} / ${subcat}`;
+    return html`<span class="chip mono">${cat} / ${subcat}</span>`;
   }
 
-  private _formatFirmware(device: InsteonDevice): string | undefined {
+  private _firmwareChip(device: InsteonDevice): TemplateResult | typeof nothing {
     if (device.firmware === undefined || device.firmware === null) {
-      return undefined;
+      return nothing;
     }
     if (device.firmware === 0) {
-      return this.insteon.localize("device.overview.not_identified");
+      return html`<span class="chip warn">
+        ${this.insteon.localize("device.overview.not_identified")}
+      </span>`;
     }
-    return String(device.firmware);
+    return html`<span class="chip">
+      ${this.insteon.localize("device.overview.fields.firmware")} ${device.firmware}
+    </span>`;
   }
 
   private _aldbClass(status: string): string {
@@ -151,22 +138,32 @@ class InsteonDeviceOverviewPage extends LitElement {
     return "bad";
   }
 
-  private _renderButtons(device: InsteonDevice): TemplateResult | typeof nothing {
+  private _renderButtonsCard(device: InsteonDevice): TemplateResult | typeof nothing {
     const buttons = device.buttons || {};
     const groups = Object.keys(buttons);
     if (groups.length === 0) {
       return nothing;
     }
     return html`
-      <div class="row">
-        <div class="label">${this.insteon.localize("device.overview.fields.buttons")}</div>
-        <div class="value">
-          ${groups.map(
-            (group) => html`<span class="chip button">${group}: ${buttons[group]}</span>`,
-          )}
+      <ha-card outlined .header=${this.insteon.localize("device.overview.fields.buttons")}>
+        <div class="card-content">
+          <div class="buttons">
+            ${groups.map(
+              (group) => html`
+                <div class="button-tile">
+                  <span class="button-group">${group}</span>
+                  <span class="button-name">${this._buttonLabel(buttons[group])}</span>
+                </div>
+              `,
+            )}
+          </div>
         </div>
-      </div>
+      </ha-card>
     `;
+  }
+
+  private _buttonLabel(name: string): string {
+    return name.replace(/_/g, " ");
   }
 
   private _onImageLoad(ev) {
@@ -194,17 +191,34 @@ class InsteonDeviceOverviewPage extends LitElement {
         .container {
           display: flex;
           flex-direction: column;
-          margin: 0 32px;
+          margin: 8px 32px 0;
         }
 
         :host([narrow]) .container {
-          margin: 0 8px;
+          margin: 8px 8px 0;
         }
 
         .page-header {
           padding: 8px;
           display: flex;
           justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+        }
+
+        .identity {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        h1 {
+          margin: 0;
+          font-size: 28px;
+          font-weight: 400;
+          line-height: 1.2;
+          color: var(--primary-text-color);
         }
 
         .logo img {
@@ -215,64 +229,76 @@ class InsteonDeviceOverviewPage extends LitElement {
           padding: 8px;
         }
 
-        h1 {
-          margin: 0;
-          font-family: var(--paper-font-headline_-_font-family);
-          -webkit-font-smoothing: var(--paper-font-headline_-_-webkit-font-smoothing);
-          font-size: var(--paper-font-headline_-_font-size);
-          font-weight: var(--paper-font-headline_-_font-weight);
-          letter-spacing: var(--paper-font-headline_-_letter-spacing);
-          line-height: var(--paper-font-headline_-_line-height);
-          opacity: var(--dark-primary-opacity);
-        }
-
-        ha-card {
-          max-width: 600px;
-          margin-bottom: 24px;
-        }
-
-        .row {
-          display: flex;
-          padding: 6px 0;
-          border-bottom: 1px solid var(--divider-color);
-        }
-
-        .row:last-child {
-          border-bottom: none;
-        }
-
-        .label {
-          width: 40%;
-          color: var(--secondary-text-color);
-        }
-
-        .value {
-          width: 60%;
+        .chips {
           display: flex;
           flex-wrap: wrap;
-          gap: 4px;
+          gap: 6px;
         }
 
         .chip {
-          border-radius: 10px;
-          padding: 1px 10px;
+          border-radius: 999px;
+          padding: 3px 12px;
           font-size: 13px;
+          line-height: 1.4;
           background-color: var(--secondary-background-color);
+          color: var(--secondary-text-color);
+          border: 1px solid var(--divider-color);
+          white-space: nowrap;
+        }
+
+        .chip.mono {
+          font-family: var(--ha-font-family-code, monospace);
+          font-size: 12.5px;
         }
 
         .chip.ok {
-          background-color: var(--success-color, #0f9d58);
-          color: var(--text-primary-color, #fff);
+          background-color: rgba(var(--rgb-success-color, 15, 157, 88), 0.15);
+          color: var(--success-color, #0f9d58);
+          border-color: transparent;
         }
 
         .chip.warn {
-          background-color: var(--warning-color, #f4b400);
-          color: var(--text-primary-color, #fff);
+          background-color: rgba(var(--rgb-warning-color, 244, 180, 0), 0.15);
+          color: var(--warning-color, #b26a00);
+          border-color: transparent;
         }
 
         .chip.bad {
-          background-color: var(--error-color, #db4437);
-          color: var(--text-primary-color, #fff);
+          background-color: rgba(var(--rgb-error-color, 219, 68, 55), 0.15);
+          color: var(--error-color, #db4437);
+          border-color: transparent;
+        }
+
+        ha-card {
+          max-width: 640px;
+          margin: 8px;
+        }
+
+        .buttons {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .button-tile {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 12px;
+          border: 1px solid var(--divider-color);
+          border-radius: 8px;
+        }
+
+        .button-group {
+          font-family: var(--ha-font-family-code, monospace);
+          font-size: 12px;
+          color: var(--secondary-text-color);
+        }
+
+        .button-name {
+          font-size: 14px;
+          color: var(--primary-text-color);
+          text-transform: capitalize;
         }
       `,
     ];
