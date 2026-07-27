@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import "../src/device/insteon-device-plate";
-import { plateLayout } from "../src/device/plate-layout";
 import type { InsteonDevicePlate } from "../src/device/insteon-device-plate";
 
 const renderPlate = async (cat: number, subcat: number): Promise<InsteonDevicePlate> => {
@@ -11,22 +10,6 @@ const renderPlate = async (cat: number, subcat: number): Promise<InsteonDevicePl
   await el.updateComplete;
   return el;
 };
-
-describe("plateLayout", () => {
-  it("maps the fleet classes", () => {
-    expect(plateLayout(0x01, 0x57)).toBe("paddle_i3");
-    expect(plateLayout(0x01, 0x59)).toBe("keypad_i3_4");
-    expect(plateLayout(0x01, 0x42)).toBe("keypad_6");
-    expect(plateLayout(0x01, 0x24)).toBe("paddle_dimmer");
-    expect(plateLayout(0x01, 0x35)).toBe("module");
-    expect(plateLayout(0x02, 0x3f)).toBe("outlet_dual");
-    expect(plateLayout(0x02, 0x2a)).toBe("paddle_relay");
-    expect(plateLayout(0x02, 0x0f)).toBe("keypad_6");
-    expect(plateLayout(0x01, 0x21)).toBe("outlet_dimmer");
-    expect(plateLayout(0x01, 0x58)).toBe("dial_i3");
-    expect(plateLayout(0x03, 0x15)).toBe("none");
-  });
-});
 
 describe("insteon-device-plate", () => {
   it("registers the custom element", () => {

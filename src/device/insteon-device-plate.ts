@@ -24,8 +24,8 @@ export class InsteonDevicePlate extends LitElement {
   protected render(): TemplateResult | typeof nothing {
     const layout = plateLayout(this.cat, this.subcat);
     switch (layout) {
-      case "paddle_dimmer":
-      case "paddle_relay":
+      case "paddle_bar":
+      case "paddle_pair":
       case "paddle_i3":
         return this._renderPaddle(layout);
       case "keypad_i3_4":
@@ -37,10 +37,12 @@ export class InsteonDevicePlate extends LitElement {
       case "dial_i3":
         return this._renderDial();
       case "outlet_dual":
+      case "outlet_i3":
         return this._renderOutlet(true);
       case "outlet_dimmer":
+      case "outlet_relay":
         return this._renderOutlet(false);
-      case "module":
+      case "micro":
         return this._renderModule();
       default:
         return nothing;
@@ -76,7 +78,7 @@ export class InsteonDevicePlate extends LitElement {
     return html`
       <div class="plate">
         <div class="paddle-zone">
-          ${layout === "paddle_dimmer"
+          ${layout === "paddle_bar"
             ? html`<div class="ledcol">
                 ${[...Array(8)].map(() => html`<span class="led"></span>`)}
               </div>`
@@ -84,7 +86,7 @@ export class InsteonDevicePlate extends LitElement {
           ${this._key(
             1,
             html`
-              ${layout === "paddle_relay"
+              ${layout === "paddle_pair"
                 ? html`<span class="led pos-top-left"></span><span class="led pos-mid-left"></span>`
                 : nothing}
               ${layout === "paddle_i3" ? html`<span class="led pos-crease"></span>` : nothing}
