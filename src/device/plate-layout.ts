@@ -59,3 +59,72 @@ export const plateLayout = (cat?: number | null, subcat?: number | null): PlateL
   }
   return LOOKUP.get(cat * 256 + subcat) ?? "none";
 };
+
+const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
+const GROUPS: Record<PlateLayout, number[]> = {
+  paddle_bar: [1],
+  paddle_pair: [1],
+  paddle_i3: [1],
+  keypad_i3_4: [1, 2, 3, 4],
+  keypad_6: [1, 3, 4, 5, 6],
+  keypad_8: [1, 2, 3, 4, 5, 6, 7, 8],
+  dial_i3: [1],
+  outlet_dual: [1, 2],
+  outlet_i3: [1, 2],
+  outlet_dimmer: [1],
+  outlet_relay: [1],
+  toggle: [1],
+  inline: [1],
+  plugin: [1],
+  micro: [1],
+  fanlinc: [1, 2],
+  none: [],
+};
+
+const KINDS: Partial<Record<PlateLayout, Record<number, string>>> = {
+  paddle_bar: { 1: "paddle" },
+  paddle_pair: { 1: "paddle" },
+  paddle_i3: { 1: "paddle" },
+  dial_i3: { 1: "dial" },
+  outlet_dual: { 1: "outlet_top", 2: "outlet_bottom" },
+  outlet_i3: { 1: "outlet_top", 2: "outlet_bottom" },
+  outlet_dimmer: { 1: "outlet_top" },
+  outlet_relay: { 1: "outlet_top" },
+  toggle: { 1: "toggle" },
+  inline: { 1: "load" },
+  plugin: { 1: "load" },
+  micro: { 1: "load" },
+  fanlinc: { 1: "light", 2: "fan" },
+};
+
+export const plateGroups = (layout: PlateLayout): number[] => GROUPS[layout];
+
+export const buttonLabel = (layout: PlateLayout, group: number): string | undefined => {
+  if (layout === "keypad_i3_4") {
+    return LETTERS[group - 1];
+  }
+  if (layout === "keypad_6") {
+    return group === 1 ? "ON/OFF" : LETTERS[group - 3];
+  }
+  if (layout === "keypad_8") {
+    return group === 1 ? "MAIN" : LETTERS[group - 1];
+  }
+  return undefined;
+};
+
+export const buttonTitle = (
+  layout: PlateLayout,
+  group: number,
+  localize: (key: string, replace?: Record<string, unknown>) => string,
+): string => {
+  const label = buttonLabel(layout, group);
+  if (label) {
+    return localize("device.overview.button.named", { label });
+  }
+  const kind = KINDS[layout]?.[group];
+  if (kind) {
+    return localize("device.overview.button." + kind);
+  }
+  return localize("device.overview.button.group", { group });
+};

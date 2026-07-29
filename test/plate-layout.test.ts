@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { plateLayout } from "../src/device/plate-layout";
+import { buttonLabel, buttonTitle, plateGroups, plateLayout } from "../src/device/plate-layout";
+
+const localize = (key: string, replace?: Record<string, unknown>) =>
+  replace ? `${key}:${JSON.stringify(replace)}` : key;
 
 describe("plateLayout", () => {
   it("maps the switchlinc family to the led bar paddle", () => {
@@ -54,5 +57,43 @@ describe("plateLayout", () => {
     expect(plateLayout(0x01, 0x7f)).toBe("none");
     expect(plateLayout(null, 0x24)).toBe("none");
     expect(plateLayout(0x01, undefined)).toBe("none");
+  });
+});
+
+describe("plateGroups", () => {
+  it("lists the groups each layout draws", () => {
+    expect(plateGroups("paddle_bar")).toEqual([1]);
+    expect(plateGroups("keypad_6")).toEqual([1, 3, 4, 5, 6]);
+    expect(plateGroups("keypad_8")).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(plateGroups("keypad_i3_4")).toEqual([1, 2, 3, 4]);
+    expect(plateGroups("outlet_dual")).toEqual([1, 2]);
+    expect(plateGroups("fanlinc")).toEqual([1, 2]);
+    expect(plateGroups("none")).toEqual([]);
+  });
+});
+
+describe("buttonLabel", () => {
+  it("returns what is printed on the key", () => {
+    expect(buttonLabel("keypad_6", 1)).toBe("ON/OFF");
+    expect(buttonLabel("keypad_6", 3)).toBe("A");
+    expect(buttonLabel("keypad_8", 1)).toBe("MAIN");
+    expect(buttonLabel("keypad_8", 8)).toBe("H");
+    expect(buttonLabel("keypad_i3_4", 2)).toBe("B");
+    expect(buttonLabel("paddle_bar", 1)).toBeUndefined();
+  });
+});
+
+describe("buttonTitle", () => {
+  it("names printed keys with the button word", () => {
+    expect(buttonTitle("keypad_6", 3, localize)).toBe('device.overview.button.named:{"label":"A"}');
+  });
+
+  it("names unprinted controls by kind", () => {
+    expect(buttonTitle("paddle_bar", 1, localize)).toBe("device.overview.button.paddle");
+    expect(buttonTitle("outlet_dual", 2, localize)).toBe("device.overview.button.outlet_bottom");
+    expect(buttonTitle("fanlinc", 2, localize)).toBe("device.overview.button.fan");
+    expect(buttonTitle("dial_i3", 1, localize)).toBe("device.overview.button.dial");
+    expect(buttonTitle("micro", 1, localize)).toBe("device.overview.button.load");
+    expect(buttonTitle("none", 4, localize)).toBe('device.overview.button.group:{"group":4}');
   });
 });

@@ -189,6 +189,18 @@
         "load_button": "load button",
         "scene_button": "scene button"
       },
+      "button": {
+        "named": "Button {label}",
+        "group": "Group {group}",
+        "paddle": "Paddle",
+        "dial": "Dial",
+        "toggle": "Toggle",
+        "outlet_top": "Top outlet",
+        "outlet_bottom": "Bottom outlet",
+        "light": "Light",
+        "fan": "Fan",
+        "load": "Load"
+      },
       "fields": {
         "model": "Model",
         "address": "Insteon address",
