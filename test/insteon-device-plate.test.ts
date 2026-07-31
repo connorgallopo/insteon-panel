@@ -2,86 +2,88 @@ import { describe, expect, it } from "vitest";
 import "../src/device/insteon-device-plate";
 import type { InsteonDevicePlate } from "../src/device/insteon-device-plate";
 
-const renderPlate = async (cat: number, subcat: number): Promise<InsteonDevicePlate> => {
+export const renderPlate = async (
+  cat: number,
+  subcat: number,
+  names: Record<number, string> = {},
+): Promise<InsteonDevicePlate> => {
   const el = document.createElement("insteon-device-plate") as InsteonDevicePlate;
   el.cat = cat;
   el.subcat = subcat;
+  el.names = names;
   document.body.appendChild(el);
   await el.updateComplete;
   return el;
 };
 
-describe("insteon-device-plate", () => {
+export const root = (el: InsteonDevicePlate) => el.shadowRoot!;
+
+export const click = (target: Element) =>
+  target.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }));
+
+describe("insteon-device-plate scaffold", () => {
   it("registers the custom element", () => {
     expect(customElements.get("insteon-device-plate")).toBeDefined();
   });
 
-  it("renders the KP014 as four stacked rows", async () => {
-    const el = await renderPlate(0x01, 0x59);
-    const rows = el.shadowRoot!.querySelectorAll(".krow");
-    expect(rows.length).toBe(4);
-    expect(rows[0].textContent).toContain("A");
-    expect(rows[3].textContent).toContain("D");
-    expect(el.shadowRoot!.querySelector(".kp-foot .slot")).not.toBeNull();
+  it("renders nothing for an unmapped device", async () => {
+    const el = await renderPlate(0x03, 0x15);
+    expect(root(el).querySelector("svg")).toBeNull();
   });
 
-  it("renders the 6-button keypad with ON and OFF on group 1", async () => {
-    const el = await renderPlate(0x01, 0x42);
-    const keys = el.shadowRoot!.querySelectorAll(".kgrid .key");
-    expect(keys.length).toBe(6);
-    expect(keys[0].textContent).toContain("ON");
-    expect(keys[5].textContent).toContain("OFF");
-  });
-
-  it("renders a dimmer paddle with the 8 LED column", async () => {
+  it("fires the selected group on click and on enter", async () => {
     const el = await renderPlate(0x01, 0x24);
-    expect(el.shadowRoot!.querySelectorAll(".ledcol .led").length).toBe(8);
-    expect(el.shadowRoot!.querySelector(".paddle")).not.toBeNull();
-  });
-
-  it("renders a relay paddle with two LEDs and no LED column", async () => {
-    const el = await renderPlate(0x02, 0x2a);
-    expect(el.shadowRoot!.querySelector(".ledcol")).toBeNull();
-    expect(el.shadowRoot!.querySelectorAll(".paddle .led").length).toBe(2);
-  });
-
-  it("renders the dual outlet with two selectable receptacles", async () => {
-    const el = await renderPlate(0x02, 0x3f);
-    expect(el.shadowRoot!.querySelectorAll(".key.recep").length).toBe(2);
-  });
-
-  it("marks the selected key", async () => {
-    const el = await renderPlate(0x01, 0x59);
-    el.selected = 2;
-    await el.updateComplete;
-    const selected = el.shadowRoot!.querySelectorAll(".selected");
-    expect(selected.length).toBe(1);
-    expect(selected[0].textContent).toContain("B");
-  });
-
-  it("tags the load button on keypads", async () => {
-    const el = await renderPlate(0x01, 0x59);
-    el.loadGroup = 2;
-    await el.updateComplete;
-    const tags = el.shadowRoot!.querySelectorAll(".load-tag");
-    expect(tags.length).toBe(1);
-    expect(tags[0].closest(".krow")!.textContent).toContain("B");
-  });
-
-  it("does not tag paddles", async () => {
-    const el = await renderPlate(0x01, 0x24);
-    el.loadGroup = 1;
-    await el.updateComplete;
-    expect(el.shadowRoot!.querySelectorAll(".load-tag").length).toBe(0);
-  });
-
-  it("fires selection events on click", async () => {
-    const el = await renderPlate(0x01, 0x59);
-    let got: number | undefined;
+    const seen: number[] = [];
     el.addEventListener("insteon-button-selected", (ev) => {
-      got = (ev as CustomEvent<{ group: number }>).detail.group;
+      seen.push((ev as CustomEvent<{ group: number }>).detail.group);
     });
-    (el.shadowRoot!.querySelectorAll(".krow")[2] as HTMLElement).click();
-    expect(got).toBe(3);
+    const key = root(el).querySelector(".key")!;
+    click(key);
+    key.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(seen).toEqual([1, 1]);
+  });
+
+  it("labels keys from the names map", async () => {
+    const el = await renderPlate(0x01, 0x24, { 1: "Paddle" });
+    expect(root(el).querySelector(".key")!.getAttribute("aria-label")).toBe("Paddle");
+  });
+
+  it("does not ring the only key on a single button device", async () => {
+    const el = await renderPlate(0x01, 0x24);
+    el.selected = 1;
+    await el.updateComplete;
+    expect(root(el).querySelector(".key.selected")).toBeNull();
+    expect(root(el).querySelector(".key")!.getAttribute("aria-pressed")).toBe("false");
+  });
+});
+
+describe("switchlinc led bar paddle", () => {
+  it("draws a bezel and nine equal leds on the left strip, top half only", async () => {
+    const el = await renderPlate(0x01, 0x24);
+    const r = root(el);
+    expect(r.querySelector(".bezel")).not.toBeNull();
+    const leds = [...r.querySelectorAll(".led")];
+    expect(leds.length).toBe(9);
+    expect(new Set(leds.map((c) => c.getAttribute("cx")))).toEqual(new Set(["4"]));
+    expect(new Set(leds.map((c) => c.getAttribute("r")))).toEqual(new Set(["2"]));
+    const ys = leds.map((c) => Number(c.getAttribute("cy")));
+    expect(ys[0]).toBe(11);
+    expect(ys[8]).toBeCloseTo(78.6, 1);
+    expect(ys[8] - ys[7]).toBeGreaterThan(ys[2] - ys[1]);
+  });
+
+  it("puts the set button under the paddle inside the bezel, black on the 2474dwh", async () => {
+    const white = await renderPlate(0x01, 0x20);
+    expect(white.shadowRoot!.querySelector(".tab.dark")).toBeNull();
+    const dwh = await renderPlate(0x01, 0x24);
+    const tab = dwh.shadowRoot!.querySelector(".tab")!;
+    expect(tab.classList.contains("dark")).toBe(true);
+    expect(Number(tab.getAttribute("y"))).toBe(152);
+    expect(Number(tab.getAttribute("width"))).toBe(12);
+  });
+
+  it("uses the same drawing for the 2476s relay", async () => {
+    const el = await renderPlate(0x02, 0x0a);
+    expect(root(el).querySelectorAll(".led").length).toBe(9);
   });
 });

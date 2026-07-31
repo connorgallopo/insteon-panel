@@ -1,15 +1,23 @@
-import type { CSSResultGroup, TemplateResult } from "lit";
-import { css, html, LitElement, nothing } from "lit";
+import type { CSSResultGroup, SVGTemplateResult, TemplateResult } from "lit";
+import { css, html, LitElement, nothing, svg } from "lit";
 import { customElement, property } from "lit/decorators";
 import { fireEvent } from "@ha/common/dom/fire_event";
 import type { PlateLayout } from "./plate-layout";
-import { plateLayout } from "./plate-layout";
+import { plateGroups, plateLayout } from "./plate-layout";
 
 declare global {
   interface HASSDomEvents {
     "insteon-button-selected": { group: number };
   }
 }
+
+const led = (cx: number, cy: number, r: number, cls = ""): SVGTemplateResult =>
+  svg`<circle class="led ${cls}" cx=${cx} cy=${cy} r=${r}></circle>`;
+
+const tab = (x: number, y: number, w: number, h: number, cls = ""): SVGTemplateResult =>
+  svg`<rect class="tab ${cls}" x=${x} y=${y} width=${w} height=${h} rx=${h / 2}></rect>`;
+
+const BAR_LED_Y = [11, 18, 26.3, 34.6, 42.9, 51.2, 59.5, 67.8, 78.6];
 
 @customElement("insteon-device-plate")
 export class InsteonDevicePlate extends LitElement {
@@ -19,48 +27,46 @@ export class InsteonDevicePlate extends LitElement {
 
   @property({ type: Number }) public selected?: number;
 
-  @property({ type: Number }) public loadGroup?: number;
+  @property({ attribute: false }) public names: Record<number, string> = {};
+
+  @property() public loadCaption?: string;
+
+  private get _layout(): PlateLayout {
+    return plateLayout(this.cat, this.subcat);
+  }
 
   protected render(): TemplateResult | typeof nothing {
-    const layout = plateLayout(this.cat, this.subcat);
-    switch (layout) {
-      case "paddle_bar":
-      case "paddle_pair":
-      case "paddle_i3":
-        return this._renderPaddle(layout);
-      case "keypad_i3_4":
-        return this._renderKeypadI3();
-      case "keypad_6":
-        return this._renderKeypad6();
-      case "keypad_8":
-        return this._renderKeypad8();
-      case "dial_i3":
-        return this._renderDial();
-      case "outlet_dual":
-      case "outlet_i3":
-        return this._renderOutlet(true);
-      case "outlet_dimmer":
-      case "outlet_relay":
-        return this._renderOutlet(false);
-      case "micro":
-        return this._renderModule();
-      default:
-        return nothing;
-    }
+    const renderers: Partial<Record<PlateLayout, () => TemplateResult>> = {
+      paddle_bar: () => this._wall(this._paddleBar()),
+    };
+    const draw = renderers[this._layout];
+    return draw ? draw() : nothing;
+  }
+
+  private _wall(content: SVGTemplateResult): TemplateResult {
+    return html`
+      <div class="plate">
+        <svg class="insert" viewBox="0 0 80 160">${content}</svg>
+      </div>
+      ${this.loadCaption ? html`<div class="caption">${this.loadCaption}</div>` : nothing}
+    `;
   }
 
   private _select(group: number) {
     fireEvent(this, "insteon-button-selected", { group });
   }
 
-  private _key(group: number, content: TemplateResult | string, extraClass = ""): TemplateResult {
-    const isKeypad = ["krow", "wide"].includes(extraClass) || extraClass === "";
-    const showLoad = isKeypad && this.loadGroup !== undefined && this.loadGroup === group;
-    return html`
-      <div
-        class="key ${extraClass} ${this.selected === group ? "selected" : ""}"
+  private _key(group: number, shape: SVGTemplateResult, cls = ""): SVGTemplateResult {
+    const multi = plateGroups(this._layout).length > 1;
+    const selected = multi && this.selected === group;
+    const name = this.names[group] ?? String(group);
+    return svg`
+      <g
+        class="key ${cls} ${selected ? "selected" : ""}"
         role="button"
         tabindex="0"
+        aria-label=${name}
+        aria-pressed=${selected ? "true" : "false"}
         @click=${() => this._select(group)}
         @keydown=${(ev: KeyboardEvent) => {
           if (ev.key === "Enter" || ev.key === " ") {
@@ -69,492 +75,149 @@ export class InsteonDevicePlate extends LitElement {
           }
         }}
       >
-        ${content} ${showLoad ? html`<span class="load-tag">LOAD</span>` : nothing}
-      </div>
+        <title>${name}</title>
+        ${shape}
+      </g>
     `;
   }
 
-  private _renderPaddle(layout: PlateLayout): TemplateResult {
-    return html`
-      <div class="plate">
-        <div class="paddle-zone">
-          ${layout === "paddle_bar"
-            ? html`<div class="ledcol">
-                ${[...Array(8)].map(() => html`<span class="led"></span>`)}
-              </div>`
-            : nothing}
-          ${this._key(
-            1,
-            html`
-              ${layout === "paddle_pair"
-                ? html`<span class="led pos-top-left"></span><span class="led pos-mid-left"></span>`
-                : nothing}
-              ${layout === "paddle_i3" ? html`<span class="led pos-crease"></span>` : nothing}
-            `,
-            "paddle",
-          )}
-        </div>
-        <div class="airgap"></div>
-      </div>
+  private _switchlinc(indicators: SVGTemplateResult): SVGTemplateResult {
+    const dark = this.subcat === 0x24;
+    return svg`
+      <rect class="bezel" x="0.5" y="0.5" width="79" height="159" rx="2"></rect>
+      ${indicators}
+      ${this._key(
+        1,
+        svg`
+          <rect class="face" x="8" y="8" width="64" height="143" rx="3"></rect>
+          <rect class="lower" x="8" y="79.5" width="64" height="71.5" rx="3"></rect>
+        `,
+      )}
+      ${tab(34, 152, 12, 5, dark ? "dark" : "")}
     `;
   }
 
-  private _renderKeypadI3(): TemplateResult {
-    const letters = ["A", "B", "C", "D"];
-    return html`
-      <div class="plate">
-        <div class="kp-insert">
-          ${letters.map((letter, idx) =>
-            this._key(idx + 1, html`${letter}<span class="led pos-row-right"></span>`, "krow"),
-          )}
-          <div class="kp-foot"><span class="slot"></span></div>
-        </div>
-      </div>
-    `;
-  }
-
-  private _renderKeypad6(): TemplateResult {
-    return html`
-      <div class="plate">
-        <div class="kp-frame">
-          <div class="kgrid">
-            ${this._key(1, html`ON`, "wide")} ${this._key(3, html`A`)} ${this._key(4, html`B`)}
-            ${this._key(5, html`C`)} ${this._key(6, html`D`)} ${this._key(1, html`OFF`, "wide")}
-          </div>
-        </div>
-        <div class="airgap"></div>
-      </div>
-    `;
-  }
-
-  private _renderKeypad8(): TemplateResult {
-    const letters = ["B", "C", "D", "E", "F", "G", "H"];
-    return html`
-      <div class="plate">
-        <div class="kp-frame">
-          <div class="kgrid">
-            ${this._key(1, html`<span class="small-label">MAIN<br />On/Off</span>`)}
-            ${letters.map((letter, idx) => this._key(idx + 2, html`${letter}`))}
-          </div>
-        </div>
-        <div class="airgap"></div>
-      </div>
-    `;
-  }
-
-  private _renderDial(): TemplateResult {
-    return html`
-      <div class="plate">
-        <div class="dial-insert">${this._key(1, html`<span class="knob"></span>`, "dial")}</div>
-      </div>
-    `;
-  }
-
-  private _renderOutlet(dual: boolean): TemplateResult {
-    return html`
-      <div class="plate">
-        <div class="outlet-insert">
-          ${this._key(1, this._receptacle(), "recep")}
-          ${dual
-            ? html`
-                <div class="outctl"><span class="led grn"></span><span class="pill"></span></div>
-                <div class="outctl"><span class="led"></span><span class="pill"></span></div>
-              `
-            : html`<div class="outctl">
-                <span class="pill"></span><span class="led grn"></span>
-              </div>`}
-          ${dual
-            ? this._key(2, this._receptacle(), "recep")
-            : html`<div class="key recep static">${this._receptacle()}</div>`}
-        </div>
-      </div>
-    `;
-  }
-
-  private _receptacle(): TemplateResult {
-    return html`<span class="slots"></span><span class="ground"></span>`;
-  }
-
-  private _renderModule(): TemplateResult {
-    return html`
-      <div class="module-body">
-        ${this._key(
-          1,
-          html`
-            <span class="led grn pos-module"></span>
-            <span class="lines"><i></i><i></i><i></i></span>
-            <span class="terms"><i></i><i></i><i></i><i></i></span>
-          `,
-          "module",
-        )}
-      </div>
-    `;
+  private _paddleBar(): SVGTemplateResult {
+    return this._switchlinc(svg`${BAR_LED_Y.map((y) => led(4, y, 2))}`);
   }
 
   static get styles(): CSSResultGroup {
     return css`
       :host {
-        display: inline-block;
-        --plate-bg: linear-gradient(175deg, #fbfaf8, #f0eeea);
-        --plate-edge: #dcd9d2;
-        --key-face: #fdfcfa;
-        --key-edge: #d9d5cc;
-        --key-down: #f1eee7;
-        --key-text: #4a463e;
-        --slot-color: #5b574e;
-        --led-off: #cfccc4;
-        --led-grn: #4caf50;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        --plate-face: #f7f7f7;
+        --plate-edge: #d9d9d9;
+        --key-face: #fdfdfd;
+        --key-hover: #f0f0f0;
+        --key-edge: #c4c4c4;
+        --hairline: #d6d6d6;
+        --slot: #4a4a4a;
+        --print: #8a8a8a;
+        --led-ring: #9a9a9a;
+        --tab: #ffffff;
+        --tab-dark: #222222;
       }
 
       .plate {
-        background: var(--plate-bg);
+        background: var(--plate-face);
         border: 1px solid var(--plate-edge);
-        border-radius: 12px;
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.7),
-          0 2px 6px rgba(0, 0, 0, 0.15);
-        padding: 18px 22px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        border-radius: 3px;
+        padding: calc(20px * var(--plate-scale, 1)) calc(21px * var(--plate-scale, 1));
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+      }
+
+      .insert {
+        display: block;
+        width: calc(80px * var(--plate-scale, 1));
+        height: calc(160px * var(--plate-scale, 1));
+      }
+
+      .body {
+        display: block;
+      }
+
+      .caption {
+        font-size: 11px;
+        color: var(--secondary-text-color, #6b6b6b);
+      }
+
+      .bezel,
+      .frame {
+        fill: var(--key-face);
+        stroke: var(--key-edge);
+        stroke-width: 1;
+      }
+
+      .face {
+        fill: var(--key-face);
+        stroke: var(--key-edge);
+        stroke-width: 1;
+      }
+
+      .lower {
+        fill: rgba(0, 0, 0, 0.03);
+        stroke: none;
+        pointer-events: none;
       }
 
       .key {
-        background: var(--key-face);
-        border: 1px solid var(--key-edge);
-        color: var(--key-text);
-        font-size: 14px;
-        font-weight: 500;
         cursor: pointer;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        outline: none;
+      }
+
+      .key:hover .face {
+        fill: var(--key-hover);
+      }
+
+      .key.selected .face,
+      .key:focus-visible .face {
+        stroke: var(--primary-color);
+        stroke-width: 1.5;
+      }
+
+      .led {
+        fill: none;
+        stroke: var(--led-ring);
+        stroke-width: 0.8;
+        pointer-events: none;
+      }
+
+      .tab {
+        fill: var(--tab);
+        stroke: var(--key-edge);
+        stroke-width: 0.6;
+      }
+
+      .tab.dark {
+        fill: var(--tab-dark);
+        stroke: none;
+      }
+
+      .slot {
+        fill: var(--slot);
+        pointer-events: none;
+      }
+
+      .print {
+        fill: var(--print);
+        font-family: var(--ha-font-family-body, sans-serif);
+        text-anchor: middle;
+        pointer-events: none;
         user-select: none;
         -webkit-user-select: none;
       }
 
-      .key:hover {
-        background: var(--key-down);
+      .print.bold {
+        font-weight: 700;
       }
 
-      .key:focus-visible {
-        outline: none;
-        box-shadow: 0 0 0 2px var(--primary-color);
-      }
-
-      .key.selected {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 1.5px var(--primary-color);
-        z-index: 1;
-      }
-
-      .key.static {
-        cursor: default;
+      .hair {
+        stroke: var(--hairline);
+        stroke-width: 0.8;
         pointer-events: none;
-      }
-
-      .led {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--led-off);
-        flex: 0 0 auto;
-      }
-
-      .led.grn {
-        background: var(--led-grn);
-        box-shadow: 0 0 4px var(--led-grn);
-      }
-
-      .load-tag {
-        font-size: 8px;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        color: var(--primary-color);
-        margin-left: 6px;
-      }
-
-      .airgap {
-        width: 34px;
-        height: 5px;
-        margin-top: 10px;
-        background: var(--key-down);
-        border: 1px solid var(--key-edge);
-        border-radius: 2px;
-      }
-
-      /* paddles */
-      .paddle-zone {
-        display: flex;
-        gap: 7px;
-        align-items: center;
-      }
-
-      .paddle {
-        width: 62px;
-        height: 126px;
-        border-radius: 6px;
-      }
-
-      .ledcol {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        align-self: flex-start;
-        margin-top: 9px;
-      }
-
-      .ledcol .led {
-        width: 5px;
-        height: 5px;
-      }
-
-      .pos-top-left {
-        position: absolute;
-        top: 11px;
-        left: 6px;
-      }
-
-      .pos-mid-left {
-        position: absolute;
-        top: 44%;
-        left: 6px;
-      }
-
-      .pos-crease {
-        position: absolute;
-        top: 50%;
-        left: 4px;
-        transform: translateY(-50%);
-      }
-
-      /* i3 keypad */
-      .kp-insert {
-        width: 96px;
-        background: var(--key-face);
-        border: 1px solid var(--key-edge);
-        border-radius: 8px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .krow {
-        height: 44px;
-        border: none;
-        border-bottom: 1px solid var(--key-edge);
-        border-radius: 0;
-        justify-content: flex-start;
-        padding: 0 12px;
-      }
-
-      .krow.selected {
-        border-color: transparent;
-        box-shadow: inset 0 0 0 2px var(--primary-color);
-      }
-
-      .pos-row-right {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-      }
-
-      .kp-foot {
-        height: 11px;
-        position: relative;
-      }
-
-      .kp-foot .slot {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: 3px;
-        width: 34px;
-        height: 4px;
-        border-radius: 2px;
-        background: var(--key-down);
-        border: 1px solid var(--key-edge);
-      }
-
-      /* keyed keypads */
-      .kp-frame {
-        background: var(--key-face);
-        border: 1px solid var(--key-edge);
-        border-radius: 8px;
-        padding: 5px;
-      }
-
-      .kgrid {
-        display: grid;
-        grid-template-columns: repeat(2, 42px);
-        gap: 4px;
-      }
-
-      .kgrid .key {
-        height: 30px;
-        border-radius: 4px;
-        font-size: 12px;
-      }
-
-      .kgrid .key.wide {
-        grid-column: span 2;
-        height: 32px;
-      }
-
-      .small-label {
-        font-size: 8.5px;
-        font-weight: 700;
-        text-align: center;
-        line-height: 1.15;
-      }
-
-      /* dial */
-      .dial-insert {
-        width: 74px;
-        height: 128px;
-        background: var(--key-face);
-        border: 1px solid var(--key-edge);
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .key.dial {
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        background: linear-gradient(160deg, #ffffff, #e8e5de);
-        box-shadow:
-          0 3px 6px rgba(0, 0, 0, 0.2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.9);
-      }
-
-      /* outlets */
-      .outlet-insert {
-        width: 74px;
-        background: var(--key-face);
-        border: 1px solid var(--key-edge);
-        border-radius: 8px;
-        padding: 9px 7px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 7px;
-      }
-
-      .key.recep {
-        width: 52px;
-        height: 46px;
-        border-radius: 8px;
-      }
-
-      .slots {
-        position: absolute;
-        top: 9px;
-        left: 12px;
-        right: 12px;
-        height: 16px;
-      }
-
-      .slots::before,
-      .slots::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        width: 4px;
-        height: 13px;
-        background: var(--slot-color);
-        border-radius: 1px;
-      }
-
-      .slots::before {
-        left: 0;
-      }
-
-      .slots::after {
-        right: 0;
-        height: 16px;
-      }
-
-      .ground {
-        position: absolute;
-        bottom: 6px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 10px;
-        height: 12px;
-        background: var(--slot-color);
-        border-radius: 50% 50% 3px 3px;
-      }
-
-      .outctl {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-
-      .pill {
-        width: 22px;
-        height: 10px;
-        border-radius: 6px;
-        background: var(--key-face);
-        border: 1px solid var(--key-edge);
-      }
-
-      /* module */
-      .module-body {
-        padding: 4px;
-      }
-
-      .key.module {
-        width: 108px;
-        height: 108px;
-        border-radius: 10px;
-        clip-path: polygon(12% 0, 88% 0, 100% 12%, 100% 88%, 88% 100%, 12% 100%, 0 88%, 0 12%);
-      }
-
-      .pos-module {
-        position: absolute;
-        top: 13px;
-        left: 16px;
-      }
-
-      .lines {
-        position: absolute;
-        top: 30px;
-        left: 16px;
-        width: 26px;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        border-left: 2px solid var(--slot-color);
-        padding-left: 0;
-      }
-
-      .lines i {
-        display: block;
-        height: 2px;
-        background: var(--slot-color);
-      }
-
-      .terms {
-        position: absolute;
-        top: 22px;
-        right: 13px;
-        display: flex;
-        flex-direction: column;
-        gap: 7px;
-      }
-
-      .terms i {
-        display: block;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #b9b5ac;
-        border: 1px solid #a19d94;
       }
     `;
   }
