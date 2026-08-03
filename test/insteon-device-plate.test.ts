@@ -87,3 +87,15 @@ describe("switchlinc led bar paddle", () => {
     expect(root(el).querySelectorAll(".led").length).toBe(9);
   });
 });
+
+describe("switchlinc two indicator paddle", () => {
+  it("draws the on led at the top and the off led at mid paddle, same size", async () => {
+    const el = await renderPlate(0x02, 0x2a);
+    const leds = [...root(el).querySelectorAll(".led")];
+    expect(leds.length).toBe(2);
+    expect(leds.map((c) => c.getAttribute("r"))).toEqual(["2", "2"]);
+    expect(leds.map((c) => c.getAttribute("cy"))).toEqual(["10", "78"]);
+    expect(leds.map((c) => c.getAttribute("cx"))).toEqual(["4", "4"]);
+    expect(root(el).querySelector(".bezel")).not.toBeNull();
+  });
+});

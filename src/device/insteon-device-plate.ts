@@ -38,6 +38,7 @@ export class InsteonDevicePlate extends LitElement {
   protected render(): TemplateResult | typeof nothing {
     const renderers: Partial<Record<PlateLayout, () => TemplateResult>> = {
       paddle_bar: () => this._wall(this._paddleBar()),
+      paddle_pair: () => this._wall(this._paddlePair()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -99,6 +100,10 @@ export class InsteonDevicePlate extends LitElement {
 
   private _paddleBar(): SVGTemplateResult {
     return this._switchlinc(svg`${BAR_LED_Y.map((y) => led(4, y, 2))}`);
+  }
+
+  private _paddlePair(): SVGTemplateResult {
+    return this._switchlinc(svg`${led(4, 10, 2)}${led(4, 78, 2)}`);
   }
 
   static get styles(): CSSResultGroup {
