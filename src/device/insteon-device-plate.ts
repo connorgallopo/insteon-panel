@@ -39,6 +39,7 @@ export class InsteonDevicePlate extends LitElement {
     const renderers: Partial<Record<PlateLayout, () => TemplateResult>> = {
       paddle_bar: () => this._wall(this._paddleBar()),
       paddle_pair: () => this._wall(this._paddlePair()),
+      paddle_i3: () => this._wall(this._paddleI3()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -104,6 +105,23 @@ export class InsteonDevicePlate extends LitElement {
 
   private _paddlePair(): SVGTemplateResult {
     return this._switchlinc(svg`${led(4, 10, 2)}${led(4, 78, 2)}`);
+  }
+
+  private _paddleI3(): SVGTemplateResult {
+    return svg`
+      <defs>
+        <linearGradient id="i3" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f4f4f4"></stop>
+          <stop offset="1" stop-color="#fbfbfb"></stop>
+        </linearGradient>
+      </defs>
+      ${this._key(
+        1,
+        svg`<rect class="face i3" x="0.5" y="0.5" width="79" height="159" rx="3"></rect>`,
+      )}
+      ${led(8, 78.4, 1.2)}
+      <rect class="slot lip" x="26.5" y="154.5" width="27" height="2.5" rx="1.25"></rect>
+    `;
   }
 
   static get styles(): CSSResultGroup {
@@ -217,6 +235,15 @@ export class InsteonDevicePlate extends LitElement {
 
       .print.bold {
         font-weight: 700;
+      }
+
+      .face.i3 {
+        fill: url(#i3);
+        stroke: var(--hairline);
+      }
+
+      .key:hover .face.i3 {
+        fill: var(--key-hover);
       }
 
       .hair {

@@ -99,3 +99,21 @@ describe("switchlinc two indicator paddle", () => {
     expect(root(el).querySelector(".bezel")).not.toBeNull();
   });
 });
+
+describe("i3 paddle", () => {
+  it("fills the insert with no bezel, one small led and a slot in the lip", async () => {
+    const el = await renderPlate(0x01, 0x57);
+    const r = root(el);
+    expect(r.querySelector(".bezel")).toBeNull();
+    const face = r.querySelector(".key .face")!;
+    expect(face.getAttribute("width")).toBe("79");
+    expect(face.getAttribute("height")).toBe("159");
+    const leds = r.querySelectorAll(".led");
+    expect(leds.length).toBe(1);
+    expect(leds[0].getAttribute("r")).toBe("1.2");
+    expect(leds[0].getAttribute("cx")).toBe("8");
+    const slot = r.querySelector(".slot.lip")!;
+    expect(slot.getAttribute("width")).toBe("27");
+    expect(Number(slot.getAttribute("y"))).toBeCloseTo(154.5, 1);
+  });
+});
