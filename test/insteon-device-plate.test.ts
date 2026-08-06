@@ -117,3 +117,26 @@ describe("i3 paddle", () => {
     expect(Number(slot.getAttribute("y"))).toBeCloseTo(154.5, 1);
   });
 });
+
+describe("kp014 keypad", () => {
+  it("draws four blank rows with a led each and keeps separators when selected", async () => {
+    const el = await renderPlate(0x01, 0x59, { 1: "Button A", 2: "Button B" });
+    el.selected = 1;
+    await el.updateComplete;
+    const r = root(el);
+    const keys = r.querySelectorAll(".key");
+    expect(keys.length).toBe(4);
+    expect(r.querySelectorAll(".print").length).toBe(0);
+    expect(r.querySelectorAll(".led").length).toBe(4);
+    expect([...r.querySelectorAll(".led")].map((c) => c.getAttribute("cy"))).toEqual([
+      "9.2",
+      "49.2",
+      "89.2",
+      "129.2",
+    ]);
+    expect(r.querySelectorAll("line.hair").length).toBe(3);
+    expect(keys[0].classList.contains("selected")).toBe(true);
+    expect(keys[0].getAttribute("aria-label")).toBe("Button A");
+    expect(r.querySelector(".slot.lip")!.getAttribute("width")).toBe("26");
+  });
+});

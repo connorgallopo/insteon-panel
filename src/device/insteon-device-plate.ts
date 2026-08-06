@@ -40,6 +40,7 @@ export class InsteonDevicePlate extends LitElement {
       paddle_bar: () => this._wall(this._paddleBar()),
       paddle_pair: () => this._wall(this._paddlePair()),
       paddle_i3: () => this._wall(this._paddleI3()),
+      keypad_i3_4: () => this._wall(this._keypadI3()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -121,6 +122,22 @@ export class InsteonDevicePlate extends LitElement {
       )}
       ${led(8, 78.4, 1.2)}
       <rect class="slot lip" x="26.5" y="154.5" width="27" height="2.5" rx="1.25"></rect>
+    `;
+  }
+
+  private _keypadI3(): SVGTemplateResult {
+    const rows = [0, 1, 2, 3];
+    return svg`
+      <rect class="frame" x="0.5" y="0.5" width="79" height="159" rx="3"></rect>
+      ${rows.map((i) =>
+        this._key(
+          i + 1,
+          svg`<rect class="face row" x="1.5" y=${i * 40 + 1.5} width="77" height="38"></rect>`,
+        ),
+      )}
+      ${[40, 80, 120].map((y) => svg`<line class="hair" x1="1" y1=${y} x2="79" y2=${y}></line>`)}
+      ${rows.map((i) => led(70.4, i * 40 + 9.2, 1))}
+      <rect class="slot lip" x="27" y="155.5" width="26" height="2.5" rx="1.25"></rect>
     `;
   }
 
@@ -235,6 +252,16 @@ export class InsteonDevicePlate extends LitElement {
 
       .print.bold {
         font-weight: 700;
+      }
+
+      .face.row {
+        stroke: none;
+      }
+
+      .key.selected .face.row,
+      .key:focus-visible .face.row {
+        stroke: var(--primary-color);
+        stroke-width: 1.5;
       }
 
       .face.i3 {
