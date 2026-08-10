@@ -140,3 +140,40 @@ describe("kp014 keypad", () => {
     expect(r.querySelector(".slot.lip")!.getAttribute("width")).toBe("26");
   });
 });
+
+describe("keypadlinc 6", () => {
+  it("draws on and off as one key with two faces and four portrait scene keys", async () => {
+    const el = await renderPlate(0x01, 0x42);
+    const r = root(el);
+    const keys = [...r.querySelectorAll(".key")];
+    expect(keys.length).toBe(5);
+    expect(keys[0].querySelectorAll(".face").length).toBe(2);
+    const a = keys[1].querySelector(".face")!;
+    expect(Number(a.getAttribute("width"))).toBeCloseTo(33.5, 1);
+    expect(Number(a.getAttribute("height"))).toBeCloseTo(33.75, 1);
+    expect(r.querySelectorAll(".print").length).toBe(10);
+    expect(r.querySelector(".tab")!.getAttribute("width")).toBe("18");
+    expect(r.querySelectorAll(".led").length).toBe(0);
+  });
+
+  it("rings both faces of the on/off pair when group 1 is selected", async () => {
+    const el = await renderPlate(0x02, 0x1e);
+    el.selected = 1;
+    await el.updateComplete;
+    expect(root(el).querySelectorAll(".key.selected").length).toBe(1);
+    expect(root(el).querySelectorAll(".key.selected .face").length).toBe(2);
+  });
+});
+
+describe("keypadlinc 8", () => {
+  it("draws eight keys with main on/off in the top left", async () => {
+    const el = await renderPlate(0x01, 0x41);
+    const r = root(el);
+    const keys = [...r.querySelectorAll(".key")];
+    expect(keys.length).toBe(8);
+    expect(keys[0].textContent).toContain("MAIN");
+    expect(keys[0].textContent).toContain("On/Off");
+    expect(keys[7].textContent).toContain("H");
+    expect(r.querySelectorAll(".print.bold").length).toBe(1);
+  });
+});

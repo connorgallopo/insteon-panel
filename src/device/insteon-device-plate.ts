@@ -17,7 +17,23 @@ const led = (cx: number, cy: number, r: number, cls = ""): SVGTemplateResult =>
 const tab = (x: number, y: number, w: number, h: number, cls = ""): SVGTemplateResult =>
   svg`<rect class="tab ${cls}" x=${x} y=${y} width=${w} height=${h} rx=${h / 2}></rect>`;
 
+const print = (x: number, y: number, text: string, size: number, cls = ""): SVGTemplateResult =>
+  svg`<text class="print ${cls}" x=${x} y=${y} font-size=${size}>${text}</text>`;
+
 const BAR_LED_Y = [11, 18, 26.3, 34.6, 42.9, 51.2, 59.5, 67.8, 78.6];
+
+const KPL_ROWS = [6, 40.75, 75.5, 110.25];
+const KPL_COLS = [6, 40.5];
+const KPL_KEY = { w: 33.5, h: 33.75 };
+
+const kplFace = (x: number, y: number, w: number): SVGTemplateResult =>
+  svg`<rect class="face" x=${x} y=${y} width=${w} height=${KPL_KEY.h} rx="1.5"></rect>`;
+
+const sceneKey = (x: number, y: number, letter: string): SVGTemplateResult => svg`
+  ${kplFace(x, y, KPL_KEY.w)}
+  ${print(x + KPL_KEY.w / 2, y + 12, "scene", 3.2)}
+  ${print(x + KPL_KEY.w / 2, y + 24, letter, 6.5)}
+`;
 
 @customElement("insteon-device-plate")
 export class InsteonDevicePlate extends LitElement {
@@ -41,6 +57,8 @@ export class InsteonDevicePlate extends LitElement {
       paddle_pair: () => this._wall(this._paddlePair()),
       paddle_i3: () => this._wall(this._paddleI3()),
       keypad_i3_4: () => this._wall(this._keypadI3()),
+      keypad_6: () => this._wall(this._keypad6()),
+      keypad_8: () => this._wall(this._keypad8()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -139,6 +157,53 @@ export class InsteonDevicePlate extends LitElement {
       ${rows.map((i) => led(70.4, i * 40 + 9.2, 1))}
       <rect class="slot lip" x="27" y="155.5" width="26" height="2.5" rx="1.25"></rect>
     `;
+  }
+
+  private _kplFrame(keys: SVGTemplateResult): SVGTemplateResult {
+    return svg`
+      <rect class="frame" x="0.5" y="0.5" width="79" height="149" rx="3"></rect>
+      ${keys}
+      ${tab(31, 152.5, 18, 2.5)}
+    `;
+  }
+
+  private _keypad6(): SVGTemplateResult {
+    const letters = ["A", "B", "C", "D"];
+    return this._kplFrame(svg`
+      ${this._key(
+        1,
+        svg`
+          ${kplFace(6, KPL_ROWS[0], 68)}
+          ${print(40, KPL_ROWS[0] + 21, "ON", 6)}
+          ${kplFace(6, KPL_ROWS[3], 68)}
+          ${print(40, KPL_ROWS[3] + 21, "OFF", 6)}
+        `,
+      )}
+      ${letters.map((letter, i) =>
+        this._key(i + 3, sceneKey(KPL_COLS[i % 2], KPL_ROWS[1 + Math.floor(i / 2)], letter)),
+      )}
+    `);
+  }
+
+  private _keypad8(): SVGTemplateResult {
+    const letters = ["B", "C", "D", "E", "F", "G", "H"];
+    return this._kplFrame(svg`
+      ${this._key(
+        1,
+        svg`
+          ${kplFace(6, 6, KPL_KEY.w)}
+          ${print(22.75, 19, "MAIN", 4.2, "bold")}
+          ${print(22.75, 27, "On/Off", 4)}
+        `,
+      )}
+      ${letters.map((letter, i) => {
+        const slot = i + 1;
+        return this._key(
+          i + 2,
+          sceneKey(KPL_COLS[slot % 2], KPL_ROWS[Math.floor(slot / 2)], letter),
+        );
+      })}
+    `);
   }
 
   static get styles(): CSSResultGroup {
