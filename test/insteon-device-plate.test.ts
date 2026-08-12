@@ -177,3 +177,16 @@ describe("keypadlinc 8", () => {
     expect(r.querySelectorAll(".print.bold").length).toBe(1);
   });
 });
+
+describe("i3 dial", () => {
+  it("draws a knob 0.87 of the insert width with a shadow and no leds", async () => {
+    const el = await renderPlate(0x01, 0x58);
+    const r = root(el);
+    const knob = r.querySelector(".key .face.knob")!;
+    expect(knob.getAttribute("r")).toBe("34.8");
+    expect(knob.getAttribute("cx")).toBe("40");
+    expect(r.querySelector(".shadow")).not.toBeNull();
+    expect(r.querySelectorAll(".led").length).toBe(0);
+    expect(r.querySelector(".tab")).toBeNull();
+  });
+});

@@ -59,6 +59,7 @@ export class InsteonDevicePlate extends LitElement {
       keypad_i3_4: () => this._wall(this._keypadI3()),
       keypad_6: () => this._wall(this._keypad6()),
       keypad_8: () => this._wall(this._keypad8()),
+      dial_i3: () => this._wall(this._dial()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -206,6 +207,23 @@ export class InsteonDevicePlate extends LitElement {
     `);
   }
 
+  private _dial(): SVGTemplateResult {
+    return svg`
+      <defs>
+        <filter id="soft" x="-20%" y="-20%" width="140%" height="160%">
+          <feGaussianBlur stdDeviation="3"></feGaussianBlur>
+        </filter>
+        <radialGradient id="knob" cx="0.4" cy="0.35" r="0.7">
+          <stop offset="0" stop-color="#ffffff"></stop>
+          <stop offset="1" stop-color="#e9e9e9"></stop>
+        </radialGradient>
+      </defs>
+      <rect class="frame" x="0.5" y="0.5" width="79" height="159" rx="3"></rect>
+      <ellipse class="shadow" cx="40" cy="94" rx="30" ry="11"></ellipse>
+      ${this._key(1, svg`<circle class="face knob" cx="40" cy="80" r="34.8"></circle>`)}
+    `;
+  }
+
   static get styles(): CSSResultGroup {
     return css`
       :host {
@@ -327,6 +345,17 @@ export class InsteonDevicePlate extends LitElement {
       .key:focus-visible .face.row {
         stroke: var(--primary-color);
         stroke-width: 1.5;
+      }
+
+      .shadow {
+        fill: rgba(0, 0, 0, 0.18);
+        filter: url(#soft);
+        pointer-events: none;
+      }
+
+      .face.knob {
+        fill: url(#knob);
+        stroke: var(--hairline);
       }
 
       .face.i3 {
