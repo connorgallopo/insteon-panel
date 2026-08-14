@@ -20,6 +20,18 @@ const tab = (x: number, y: number, w: number, h: number, cls = ""): SVGTemplateR
 const print = (x: number, y: number, text: string, size: number, cls = ""): SVGTemplateResult =>
   svg`<text class="print ${cls}" x=${x} y=${y} font-size=${size}>${text}</text>`;
 
+const slots = (cx: number, y: number, gap: number, tall: number, short: number, w = 4) =>
+  svg`
+    <rect class="slot" x=${cx - gap / 2 - w / 2} y=${y} width=${w} height=${tall} rx="1"></rect>
+    <rect class="slot" x=${cx + gap / 2 - w / 2} y=${y + (tall - short) / 2} width=${w} height=${short} rx="1"></rect>
+  `;
+
+const ground = (cx: number, y: number, w: number, h: number): SVGTemplateResult =>
+  svg`<path class="slot" d="M${cx - w / 2} ${y} h${w} v${h - w / 2} a${w / 2} ${w / 2} 0 0 1 -${w} 0 z"></path>`;
+
+const hit = (y: number, h: number): SVGTemplateResult =>
+  svg`<rect class="hit" x="0.5" y=${y} width="79" height=${h} rx="2"></rect>`;
+
 const BAR_LED_Y = [11, 18, 26.3, 34.6, 42.9, 51.2, 59.5, 67.8, 78.6];
 
 const KPL_ROWS = [6, 40.75, 75.5, 110.25];
@@ -60,6 +72,8 @@ export class InsteonDevicePlate extends LitElement {
       keypad_6: () => this._wall(this._keypad6()),
       keypad_8: () => this._wall(this._keypad8()),
       dial_i3: () => this._wall(this._dial()),
+      outlet_dual: () => this._wall(this._outletDual()),
+      outlet_i3: () => this._wall(this._outletI3()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -224,6 +238,45 @@ export class InsteonDevicePlate extends LitElement {
     `;
   }
 
+  private _outletFace(
+    upper: SVGTemplateResult,
+    lower: SVGTemplateResult,
+    controls: SVGTemplateResult,
+  ): SVGTemplateResult {
+    return svg`
+      <rect class="frame" x="0.5" y="0.5" width="79" height="159" rx="2"></rect>
+      ${this._key(1, svg`${hit(0.5, 60)}${upper}`)}
+      ${controls}
+      ${this._key(2, svg`${hit(100, 59.5)}${lower}`)}
+    `;
+  }
+
+  private _outletDual(): SVGTemplateResult {
+    return this._outletFace(
+      svg`${slots(40, 6.4, 32.8, 18, 16.3)}${ground(40, 49.6, 11.5, 12.5)}`,
+      svg`${slots(40, 118, 32.8, 18, 16.3)}${ground(40, 141, 11.5, 12.5)}`,
+      svg`
+        <rect class="btn" x="28" y="63.2" width="24" height="8" rx="4"></rect>
+        <rect class="btn" x="28" y="84" width="24" height="8" rx="4"></rect>
+        ${led(14.4, 67.2, 2.3)}
+        ${led(14.4, 88, 2.3)}
+      `,
+    );
+  }
+
+  private _outletI3(): SVGTemplateResult {
+    return this._outletFace(
+      svg`${slots(40, 6, 32.8, 20, 16.5, 5)}${ground(40, 49, 11, 12)}`,
+      svg`${slots(40, 120, 32.8, 20, 16.5, 5)}${ground(40, 143, 11, 12)}`,
+      svg`
+        <circle class="btn" cx="40" cy="67.2" r="6.4"></circle>
+        <circle class="btn" cx="40" cy="91.2" r="6.4"></circle>
+        ${led(24.8, 67.2, 0.8)}
+        ${led(24.8, 91.2, 0.8)}
+      `,
+    );
+  }
+
   static get styles(): CSSResultGroup {
     return css`
       :host {
@@ -365,6 +418,29 @@ export class InsteonDevicePlate extends LitElement {
 
       .key:hover .face.i3 {
         fill: var(--key-hover);
+      }
+
+      .hit {
+        fill: transparent;
+        stroke: none;
+      }
+
+      .key:hover .hit {
+        stroke: var(--hairline);
+        stroke-width: 1;
+      }
+
+      .key.selected .hit,
+      .key:focus-visible .hit {
+        stroke: var(--primary-color);
+        stroke-width: 1.5;
+      }
+
+      .btn {
+        fill: var(--key-face);
+        stroke: var(--key-edge);
+        stroke-width: 0.8;
+        pointer-events: none;
       }
 
       .hair {

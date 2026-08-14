@@ -190,3 +190,33 @@ describe("i3 dial", () => {
     expect(r.querySelector(".tab")).toBeNull();
   });
 });
+
+describe("on/off outlet", () => {
+  it("uses invisible hit regions on a flat face with pills and ring leds at x 14.4", async () => {
+    const el = await renderPlate(0x02, 0x39);
+    const r = root(el);
+    expect(r.querySelectorAll(".key .hit").length).toBe(2);
+    expect(r.querySelectorAll(".key .face").length).toBe(0);
+    const pills = r.querySelectorAll("rect.btn");
+    expect(pills.length).toBe(2);
+    expect(pills[0].getAttribute("width")).toBe("24");
+    const leds = [...r.querySelectorAll(".led")];
+    expect(leds.map((c) => c.getAttribute("cx"))).toEqual(["14.4", "14.4"]);
+    expect(leds[0].getAttribute("r")).toBe("2.3");
+    expect(r.querySelectorAll(".slot").length).toBe(6);
+  });
+});
+
+describe("i3 outlet", () => {
+  it("draws round buttons and tiny leds at x 24.8", async () => {
+    const el = await renderPlate(0x02, 0x3f);
+    const r = root(el);
+    const buttons = r.querySelectorAll("circle.btn");
+    expect(buttons.length).toBe(2);
+    expect(buttons[0].getAttribute("r")).toBe("6.4");
+    const leds = [...r.querySelectorAll(".led")];
+    expect(leds.map((c) => c.getAttribute("cx"))).toEqual(["24.8", "24.8"]);
+    expect(leds[0].getAttribute("r")).toBe("0.8");
+    expect(r.querySelector(".slot")!.getAttribute("width")).toBe("5");
+  });
+});
