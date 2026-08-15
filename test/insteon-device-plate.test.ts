@@ -220,3 +220,37 @@ describe("i3 outlet", () => {
     expect(r.querySelector(".slot")!.getAttribute("width")).toBe("5");
   });
 });
+
+describe("outletlinc dimmer", () => {
+  it("keys only the upper receptacle, prints lamps only and draws a vertical oval", async () => {
+    const el = await renderPlate(0x01, 0x21);
+    const r = root(el);
+    expect(r.querySelectorAll(".key").length).toBe(1);
+    expect(r.querySelector(".keyed")).not.toBeNull();
+    expect(r.textContent).toContain("LAMPS ONLY");
+    const oval = r.querySelector("rect.btn")!;
+    expect(oval.getAttribute("height")).toBe("28.8");
+    expect(oval.getAttribute("x")).toBe("9.6");
+    const ledEl = r.querySelector(".led")!;
+    expect(ledEl.getAttribute("cx")).toBe("56");
+    expect(ledEl.getAttribute("r")).toBe("2.4");
+    expect(r.querySelector(".dim")).not.toBeNull();
+    expect(r.querySelector(".dim .key")).toBeNull();
+  });
+});
+
+describe("outletlinc relay", () => {
+  it("prints controlled and centres the led above a pill", async () => {
+    const el = await renderPlate(0x02, 0x08);
+    const r = root(el);
+    expect(r.querySelector(".keyed")).toBeNull();
+    expect(r.textContent).toContain("Controlled");
+    expect(r.querySelectorAll(".key").length).toBe(1);
+    const pill = r.querySelector("rect.btn")!;
+    expect(pill.getAttribute("x")).toBe("31");
+    expect(pill.getAttribute("width")).toBe("18");
+    const ledEl = r.querySelector(".led")!;
+    expect(ledEl.getAttribute("cx")).toBe("40");
+    expect(ledEl.getAttribute("cy")).toBe("72");
+  });
+});

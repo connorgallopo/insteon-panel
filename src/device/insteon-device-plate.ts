@@ -74,6 +74,8 @@ export class InsteonDevicePlate extends LitElement {
       dial_i3: () => this._wall(this._dial()),
       outlet_dual: () => this._wall(this._outletDual()),
       outlet_i3: () => this._wall(this._outletI3()),
+      outlet_dimmer: () => this._wall(this._outletLinc(true)),
+      outlet_relay: () => this._wall(this._outletLinc(false)),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -277,6 +279,29 @@ export class InsteonDevicePlate extends LitElement {
     );
   }
 
+  private _outletLinc(dimmer: boolean): SVGTemplateResult {
+    const controls = dimmer
+      ? svg`
+          <path class="keyed" d="M14 4 h52 v30 l-26 8 l-26 -8 z"></path>
+          ${print(40, 46, "LAMPS ONLY", 4, "bold")}
+          ${print(40, 50.5, "REQUIRES OUTLET DIMMER KEY", 2.4)}
+          <rect class="btn" x="9.6" y="67.2" width="14.4" height="28.8" rx="7.2"></rect>
+          ${led(56, 83.2, 2.4)}
+        `
+      : svg`
+          ${print(40, 34, "Controlled", 3.2)}
+          ${ground(40, 38, 11, 12)}
+          ${led(40, 72, 1.8)}
+          <rect class="btn" x="31" y="80" width="18" height="8" rx="4"></rect>
+        `;
+    return svg`
+      <rect class="frame" x="0.5" y="0.5" width="79" height="159" rx="2"></rect>
+      ${this._key(1, svg`${hit(0.5, 60)}${slots(40, 8, 34, 20, 17)}`)}
+      ${controls}
+      <g class="dim">${slots(40, 112, 34, 20, 17)}${ground(40, 138, 11, 12)}</g>
+    `;
+  }
+
   static get styles(): CSSResultGroup {
     return css`
       :host {
@@ -441,6 +466,18 @@ export class InsteonDevicePlate extends LitElement {
         stroke: var(--key-edge);
         stroke-width: 0.8;
         pointer-events: none;
+      }
+
+      .keyed {
+        fill: none;
+        stroke: var(--print);
+        stroke-width: 0.6;
+        stroke-dasharray: 1.5 1;
+        pointer-events: none;
+      }
+
+      .dim {
+        opacity: 0.55;
       }
 
       .hair {
