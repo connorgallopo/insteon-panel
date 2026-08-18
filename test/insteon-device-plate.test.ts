@@ -254,3 +254,18 @@ describe("outletlinc relay", () => {
     expect(ledEl.getAttribute("cy")).toBe("72");
   });
 });
+
+describe("togglelinc", () => {
+  it("draws a lever in a toggle opening with one led and a set tab beside it", async () => {
+    const el = await renderPlate(0x02, 0x1a);
+    const r = root(el);
+    expect(r.querySelector(".opening")).not.toBeNull();
+    expect(r.querySelector(".key .face.lever")).not.toBeNull();
+    const leds = r.querySelectorAll(".led");
+    expect(leds.length).toBe(1);
+    expect(leds[0].getAttribute("cy")).toBe("104");
+    const tabEl = r.querySelector(".tab")!;
+    expect(tabEl.getAttribute("width")).toBe("8");
+    expect(Number(tabEl.getAttribute("x"))).toBeLessThan(40);
+  });
+});

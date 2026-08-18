@@ -76,6 +76,7 @@ export class InsteonDevicePlate extends LitElement {
       outlet_i3: () => this._wall(this._outletI3()),
       outlet_dimmer: () => this._wall(this._outletLinc(true)),
       outlet_relay: () => this._wall(this._outletLinc(false)),
+      toggle: () => this._wall(this._toggle()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -302,6 +303,19 @@ export class InsteonDevicePlate extends LitElement {
     `;
   }
 
+  private _toggle(): SVGTemplateResult {
+    return svg`
+      <rect class="frame" x="0.5" y="0.5" width="79" height="159" rx="2"></rect>
+      <rect class="opening" x="32" y="48" width="16" height="46" rx="1"></rect>
+      ${this._key(
+        1,
+        svg`<rect class="face lever" x="34" y="44" width="12" height="30" rx="3"></rect>`,
+      )}
+      ${led(40, 104, 1.5)}
+      ${tab(24, 102.5, 8, 3)}
+    `;
+  }
+
   static get styles(): CSSResultGroup {
     return css`
       :host {
@@ -478,6 +492,14 @@ export class InsteonDevicePlate extends LitElement {
 
       .dim {
         opacity: 0.55;
+      }
+
+      .opening {
+        fill: var(--slot);
+      }
+
+      .face.lever {
+        stroke: var(--key-edge);
       }
 
       .hair {
