@@ -77,6 +77,8 @@ export class InsteonDevicePlate extends LitElement {
       outlet_dimmer: () => this._wall(this._outletLinc(true)),
       outlet_relay: () => this._wall(this._outletLinc(false)),
       toggle: () => this._wall(this._toggle()),
+      inline: () => this._body(80, 120, this._inline()),
+      plugin: () => this._body(86, 127, this._plugin()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -87,6 +89,15 @@ export class InsteonDevicePlate extends LitElement {
       <div class="plate">
         <svg class="insert" viewBox="0 0 80 160">${content}</svg>
       </div>
+      ${this.loadCaption ? html`<div class="caption">${this.loadCaption}</div>` : nothing}
+    `;
+  }
+
+  private _body(w: number, h: number, content: SVGTemplateResult): TemplateResult {
+    return html`
+      <svg class="body" viewBox="0 0 ${w} ${h}" style="width: calc(${w}px * var(--plate-scale, 1))">
+        ${content}
+      </svg>
       ${this.loadCaption ? html`<div class="caption">${this.loadCaption}</div>` : nothing}
     `;
   }
@@ -316,6 +327,37 @@ export class InsteonDevicePlate extends LitElement {
     `;
   }
 
+  private _inline(): SVGTemplateResult {
+    const squares: [number, number, string][] = [
+      [46, 29, "ON"],
+      [15, 74, "SET"],
+      [46, 74, "OFF"],
+    ];
+    return svg`
+      ${this._key(1, svg`<rect class="face" x="0.5" y="0.5" width="79" height="119" rx="3"></rect>`)}
+      <circle class="btn" cx="26" cy="40" r="9"></circle>
+      ${led(26, 40, 1.5)}
+      ${led(8, 40, 1)}
+      ${squares.map(
+        ([x, y, text]) => svg`
+          <rect class="btn" x=${x} y=${y} width="22" height="22" rx="3"></rect>
+          ${print(x + 11, y + 29, text, 3.5)}
+        `,
+      )}
+    `;
+  }
+
+  private _plugin(): SVGTemplateResult {
+    return svg`
+      ${this._key(1, svg`<rect class="face" x="0.5" y="0.5" width="79" height="126" rx="4"></rect>`)}
+      ${slots(40, 18, 24, 14, 12)}
+      ${ground(40, 40, 10, 11)}
+      <rect class="led strip" x="11.3" y="3" width="1.4" height="6.4" rx="0.7"></rect>
+      <rect class="btn" x="80" y="48" width="5" height="30" rx="2"></rect>
+      ${print(40, 120, "INSTEON", 4.5, "wordmark")}
+    `;
+  }
+
   static get styles(): CSSResultGroup {
     return css`
       :host {
@@ -500,6 +542,16 @@ export class InsteonDevicePlate extends LitElement {
 
       .face.lever {
         stroke: var(--key-edge);
+      }
+
+      .led.strip {
+        fill: var(--led-ring);
+        stroke: none;
+      }
+
+      .print.wordmark {
+        font-weight: 700;
+        letter-spacing: 0.08em;
       }
 
       .hair {

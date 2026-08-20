@@ -269,3 +269,29 @@ describe("togglelinc", () => {
     expect(Number(tabEl.getAttribute("x"))).toBeLessThan(40);
   });
 });
+
+describe("in-line module", () => {
+  it("draws the round dimple, three square buttons and two leds on a portrait face", async () => {
+    const el = await renderPlate(0x02, 0x1f);
+    const r = root(el);
+    expect(r.querySelector(".plate")).toBeNull();
+    expect(r.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 80 120");
+    expect(r.querySelectorAll("circle.btn").length).toBe(1);
+    expect(r.querySelectorAll("rect.btn").length).toBe(3);
+    expect(r.textContent).toContain("SET");
+    expect(r.querySelectorAll(".led").length).toBe(2);
+    expect(r.querySelectorAll(".key").length).toBe(1);
+  });
+});
+
+describe("plug-in module", () => {
+  it("draws a tall body with a receptacle, led strip, edge rocker and wordmark", async () => {
+    const el = await renderPlate(0x01, 0x0e);
+    const r = root(el);
+    expect(r.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 86 127");
+    expect(r.querySelector(".led.strip")).not.toBeNull();
+    expect(r.querySelector(".wordmark")!.textContent).toBe("INSTEON");
+    expect(r.querySelectorAll(".slot").length).toBe(3);
+    expect(r.querySelector("rect.btn")!.getAttribute("x")).toBe("80");
+  });
+});
