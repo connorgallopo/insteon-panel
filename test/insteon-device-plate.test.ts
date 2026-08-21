@@ -295,3 +295,18 @@ describe("plug-in module", () => {
     expect(r.querySelector("rect.btn")!.getAttribute("x")).toBe("80");
   });
 });
+
+describe("micro module", () => {
+  it("draws an octagon body with the on/off/set glyph, paired terminals and wordmark", async () => {
+    const el = await renderPlate(0x01, 0x35);
+    const r = root(el);
+    expect(r.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 100 100");
+    expect(r.querySelector("polygon.face")).not.toBeNull();
+    expect(r.querySelectorAll(".term").length).toBe(4);
+    expect(r.querySelectorAll("circle.btn").length).toBe(3);
+    expect(r.textContent).toContain("Set");
+    expect(r.querySelector(".wordmark")).not.toBeNull();
+    const ledEl = r.querySelector(".led")!;
+    expect(ledEl.getAttribute("r")).toBe("1.55");
+  });
+});

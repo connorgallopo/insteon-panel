@@ -79,6 +79,7 @@ export class InsteonDevicePlate extends LitElement {
       toggle: () => this._wall(this._toggle()),
       inline: () => this._body(80, 120, this._inline()),
       plugin: () => this._body(86, 127, this._plugin()),
+      micro: () => this._body(100, 100, this._micro()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -358,6 +359,30 @@ export class InsteonDevicePlate extends LitElement {
     `;
   }
 
+  private _micro(): SVGTemplateResult {
+    const rows: [number, string][] = [
+      [20, "On"],
+      [29, "Off"],
+      [38, "Set"],
+    ];
+    return svg`
+      ${this._key(
+        1,
+        svg`<polygon class="face" points="12,0.5 88,0.5 99.5,12 99.5,88 88,99.5 12,99.5 0.5,88 0.5,12"></polygon>`,
+      )}
+      ${led(15, 11, 1.55)}
+      <path class="glyph" d="M9 17 v24 M9 20 h10 M9 29 h10 M9 38 h10"></path>
+      ${rows.map(
+        ([y, text]) => svg`
+          <circle class="btn" cx="14" cy=${y} r="1.6"></circle>
+          ${print(22, y + 1.2, text, 3, "left")}
+        `,
+      )}
+      ${[23, 39, 61, 77].map((y) => svg`<circle class="term" cx="91" cy=${y} r="3.3"></circle>`)}
+      ${print(50, 92, "INSTEON", 5, "wordmark")}
+    `;
+  }
+
   static get styles(): CSSResultGroup {
     return css`
       :host {
@@ -552,6 +577,24 @@ export class InsteonDevicePlate extends LitElement {
       .print.wordmark {
         font-weight: 700;
         letter-spacing: 0.08em;
+      }
+
+      .glyph {
+        fill: none;
+        stroke: var(--slot);
+        stroke-width: 1.2;
+        pointer-events: none;
+      }
+
+      .print.left {
+        text-anchor: start;
+      }
+
+      .term {
+        fill: #b9b9b9;
+        stroke: #9d9d9d;
+        stroke-width: 0.6;
+        pointer-events: none;
       }
 
       .hair {
