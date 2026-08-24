@@ -310,3 +310,21 @@ describe("micro module", () => {
     expect(ledEl.getAttribute("r")).toBe("1.55");
   });
 });
+
+describe("fanlinc", () => {
+  it("draws two leds labelled light and fan with two hit regions", async () => {
+    const el = await renderPlate(0x01, 0x2e, { 1: "Light", 2: "Fan" });
+    const r = root(el);
+    expect(r.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 80 176");
+    expect(r.querySelectorAll(".led").length).toBe(2);
+    expect(r.textContent).toContain("LIGHT");
+    expect(r.textContent).toContain("FAN");
+    const keys = r.querySelectorAll(".key");
+    expect(keys.length).toBe(2);
+    expect(keys[1].getAttribute("aria-label")).toBe("Fan");
+    expect(r.querySelector(".vents")).not.toBeNull();
+    el.selected = 2;
+    await el.updateComplete;
+    expect(r.querySelectorAll(".key.selected").length).toBe(1);
+  });
+});

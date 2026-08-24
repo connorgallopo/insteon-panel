@@ -80,6 +80,7 @@ export class InsteonDevicePlate extends LitElement {
       inline: () => this._body(80, 120, this._inline()),
       plugin: () => this._body(86, 127, this._plugin()),
       micro: () => this._body(100, 100, this._micro()),
+      fanlinc: () => this._body(80, 176, this._fanlinc()),
     };
     const draw = renderers[this._layout];
     return draw ? draw() : nothing;
@@ -380,6 +381,20 @@ export class InsteonDevicePlate extends LitElement {
       )}
       ${[23, 39, 61, 77].map((y) => svg`<circle class="term" cx="91" cy=${y} r="3.3"></circle>`)}
       ${print(50, 92, "INSTEON", 5, "wordmark")}
+    `;
+  }
+
+  private _fanlinc(): SVGTemplateResult {
+    const vents = [...Array(18)].map((_, i) => `M12 ${60 + i * 6} h56`).join(" ");
+    return svg`
+      <rect class="frame" x="0.5" y="0.5" width="79" height="175" rx="3"></rect>
+      ${led(29.6, 8.8, 1.5)}
+      ${print(29.6, 15, "LIGHT", 3)}
+      ${led(51.2, 8.8, 1.5)}
+      ${print(51.2, 15, "FAN", 3)}
+      <path class="hair vents" d=${vents}></path>
+      ${this._key(1, hit(20, 76))}
+      ${this._key(2, hit(98, 77))}
     `;
   }
 
