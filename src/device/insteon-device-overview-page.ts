@@ -9,7 +9,7 @@ import { showAlertDialog } from "@ha/dialogs/generic/show-dialog-box";
 import { haStyle } from "@ha/resources/styles";
 import { insteonDeviceTabs } from "./insteon-device-router";
 import "./insteon-device-plate";
-import { plateLayout } from "./plate-layout";
+import { buttonLabel, buttonTitle, plateGroups, plateLayout } from "./plate-layout";
 import type { Insteon, InsteonDevice } from "../data/insteon";
 import type { ALDBRecord } from "../data/device";
 import { fetchInsteonDevice, fetchInsteonALDB, fetchInsteonProperties } from "../data/device";
@@ -194,7 +194,8 @@ class InsteonDeviceOverviewPage extends LitElement {
               .cat=${device.cat}
               .subcat=${device.subcat}
               .selected=${this._selectedGroup}
-              .loadGroup=${this._loadGroup}
+              .names=${this._buttonNames(device)}
+              .loadCaption=${this._loadCaption(device)}
               @insteon-button-selected=${this._handleButtonSelected}
             ></insteon-device-plate>
             ${this._renderButtonPane(device)}
@@ -206,6 +207,25 @@ class InsteonDeviceOverviewPage extends LitElement {
 
   private _handleButtonSelected(ev: CustomEvent<{ group: number }>) {
     this._selectedGroup = ev.detail.group;
+  }
+
+  private _buttonNames(device: InsteonDevice): Record<number, string> {
+    const layout = plateLayout(device.cat, device.subcat);
+    const names: Record<number, string> = {};
+    plateGroups(layout).forEach((group) => {
+      names[group] = buttonTitle(layout, group, this.insteon.localize);
+    });
+    return names;
+  }
+
+  private _loadCaption(device: InsteonDevice): string | undefined {
+    const layout = plateLayout(device.cat, device.subcat);
+    if (this._loadGroup === undefined || !layout.startsWith("keypad")) {
+      return undefined;
+    }
+    return this.insteon.localize("device.overview.pane.load_caption", {
+      label: buttonLabel(layout, this._loadGroup) ?? String(this._loadGroup),
+    });
   }
 
   private async _resolveLoadGroup(device: InsteonDevice) {

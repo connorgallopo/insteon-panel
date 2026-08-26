@@ -328,3 +328,15 @@ describe("fanlinc", () => {
     expect(r.querySelectorAll(".key.selected").length).toBe(1);
   });
 });
+
+describe("load caption", () => {
+  it("shows the caption once under the plate and never inside a key", async () => {
+    const el = await renderPlate(0x01, 0x42);
+    el.loadCaption = "Load button: ON/OFF";
+    await el.updateComplete;
+    const captions = root(el).querySelectorAll(".caption");
+    expect(captions.length).toBe(1);
+    expect(captions[0].textContent).toContain("ON/OFF");
+    expect(root(el).querySelector(".key .caption")).toBeNull();
+  });
+});
