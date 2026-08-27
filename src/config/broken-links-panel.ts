@@ -43,13 +43,7 @@ interface BrokenLinkRowData extends DataTableRowData {
   data1: number;
   data2: number;
   data3: number;
-  status: [
-    "missing_controller",
-    "missing_responder",
-    "missing_target",
-    "found",
-    "target_db_not_loaded",
-  ];
+  status: BrokenLink["status"];
 }
 
 @customElement("broken-links-panel")
@@ -174,7 +168,7 @@ export class BrokenLinksPanel extends LitElement {
   });
 
   private _rowActions(record: BrokenLinkRowData) {
-    const status = record.status as unknown as string;
+    const status = record.status;
     if (status === "target_db_not_loaded") {
       return [
         {
@@ -191,15 +185,6 @@ export class BrokenLinksPanel extends LitElement {
           label: this.insteon.localize("utils.broken_links.actions.create_missing"),
           action: () => this._handleCreateRecord(record),
         },
-        {
-          path: mdiDeleteOutline,
-          label: this.insteon.localize("utils.broken_links.actions.delete_record"),
-          action: () => this._handleDeleteRecord(record),
-        },
-      ];
-    }
-    if (status === "missing_target") {
-      return [
         {
           path: mdiDeleteOutline,
           label: this.insteon.localize("utils.broken_links.actions.delete_record"),
@@ -245,9 +230,8 @@ export class BrokenLinksPanel extends LitElement {
   }
 
   private async _handleCreateRecord(record: BrokenLinkRowData) {
-    // The new record is the complement of the surviving half. A new
-    // responder gets on-level and ramp defaults; a new controller gets
-    // the button number in data3.
+    // The new record is the complement of the surviving half, with the
+    // same data defaults pyinsteon uses for its own default links.
     const creating_controller = !record.is_controller;
     const aldb_rec: ALDBRecord = {
       mem_addr: 0,
@@ -257,8 +241,8 @@ export class BrokenLinksPanel extends LitElement {
       group: record.group,
       target: record.address,
       target_name: "",
-      data1: creating_controller ? 3 : 255,
-      data2: creating_controller ? 0 : 28,
+      data1: 255,
+      data2: 28,
       data3: creating_controller ? record.group : 1,
       dirty: true,
     };
