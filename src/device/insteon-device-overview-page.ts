@@ -12,6 +12,8 @@ import "./insteon-device-plate";
 import { buttonLabel, buttonTitle, plateGroups, plateLayout } from "./plate-layout";
 import type { Insteon, InsteonDevice } from "../data/insteon";
 import type { ALDBRecord } from "../data/device";
+import type { LinkRow } from "./link-rows";
+import { controlRows, responderRows } from "./link-rows";
 import { fetchInsteonDevice, fetchInsteonALDB, fetchInsteonProperties } from "../data/device";
 
 @customElement("insteon-device-overview-page")
@@ -257,15 +259,9 @@ class InsteonDeviceOverviewPage extends LitElement {
     }
     const buttons = device.buttons || {};
     const singleButton = Object.keys(buttons).length === 1;
-    const records = (this._aldb || []).filter((rec) => rec.in_use);
-    const controls = records.filter((rec) => rec.is_controller && rec.group === group);
-    const respondsTo = records.filter(
-      (rec) =>
-        !rec.is_controller &&
-        (singleButton ||
-          rec.data3 === group ||
-          (group === 1 && (rec.data3 === 0 || rec.data3 === 1))),
-    );
+    const records = this._aldb || [];
+    const controls = controlRows(records, group);
+    const respondsTo = responderRows(records, group, singleButton);
     const name = this._buttonLabel(buttons[group] || "");
     return html`
       <div class="pane">
@@ -274,37 +270,39 @@ class InsteonDeviceOverviewPage extends LitElement {
           ${this.insteon.localize("device.overview.pane.group")} ${group}
           ${this._paneRole(device, group)}
         </div>
-        <div class="pane-section">
-          <div class="pane-label">${this.insteon.localize("device.overview.pane.controls")}</div>
-          ${controls.length === 0
-            ? html`<div class="pane-empty">
-                ${this.insteon.localize("device.overview.pane.no_links")}
-              </div>`
-            : controls.map(
-                (rec) => html`
-                  <div class="link-row">
-                    <span class="link-who">${rec.target_name || rec.target}</span>
-                  </div>
-                `,
-              )}
-        </div>
-        <div class="pane-section">
-          <div class="pane-label">${this.insteon.localize("device.overview.pane.responds_to")}</div>
-          ${respondsTo.length === 0
-            ? html`<div class="pane-empty">
-                ${this.insteon.localize("device.overview.pane.no_links")}
-              </div>`
-            : respondsTo.map(
-                (rec) => html`
-                  <div class="link-row">
-                    <span class="link-who">${rec.target_name || rec.target}</span>
-                    <span class="link-how">
-                      ${this.insteon.localize("device.overview.pane.group")} ${rec.group}
-                    </span>
-                  </div>
-                `,
-              )}
-        </div>
+        ${this._paneSection("controls", controls, false)}
+        ${this._paneSection("responds_to", respondsTo, true)}
+      </div>
+    `;
+  }
+
+  private _paneSection(key: string, rows: LinkRow[], showGroup: boolean): TemplateResult {
+    return html`
+      <div class="pane-section">
+        <div class="pane-label">${this.insteon.localize("device.overview.pane." + key)}</div>
+        ${rows.length === 0
+          ? html`<div class="pane-empty">
+              ${this.insteon.localize("device.overview.pane.no_links")}
+            </div>`
+          : rows.map((row) => this._linkRow(row, showGroup))}
+      </div>
+    `;
+  }
+
+  private _linkRow(row: LinkRow, showGroup: boolean): TemplateResult {
+    return html`
+      <div class="link-row">
+        <span class="link-who">${row.name}</span>
+        <span class="link-how">
+          ${showGroup
+            ? this.insteon.localize("device.overview.pane.from_group", { group: row.group })
+            : nothing}
+          ${row.count > 1
+            ? html`<span class="link-count">
+                ${this.insteon.localize("device.overview.pane.times", { count: row.count })}
+              </span>`
+            : nothing}
+        </span>
       </div>
     `;
   }
@@ -498,6 +496,14 @@ class InsteonDeviceOverviewPage extends LitElement {
           font-size: 12.5px;
           color: var(--secondary-text-color);
           white-space: nowrap;
+        }
+
+        .link-count {
+          margin-left: 8px;
+          padding: 1px 6px;
+          border-radius: 999px;
+          background-color: var(--secondary-background-color);
+          font-family: var(--ha-font-family-code, monospace);
         }
 
         .buttons {

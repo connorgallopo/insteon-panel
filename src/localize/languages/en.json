@@ -188,7 +188,9 @@
         "group": "group",
         "load_button": "load button",
         "scene_button": "scene button",
-        "load_caption": "Load button: {label}"
+        "load_caption": "Load button: {label}",
+        "from_group": "from group {group}",
+        "times": "×{count}"
       },
       "button": {
         "named": "Button {label}",
