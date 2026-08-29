@@ -212,7 +212,8 @@
         "firmware": "Firmware",
         "aldb_status": "Link database",
         "battery": "Power",
-        "buttons": "Buttons"
+        "buttons": "Buttons",
+        "button": "Button"
       }
     },
     "remove_all_refs": {

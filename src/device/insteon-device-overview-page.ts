@@ -16,6 +16,11 @@ import type { LinkRow } from "./link-rows";
 import { controlRows, responderRows } from "./link-rows";
 import { fetchInsteonDevice, fetchInsteonALDB, fetchInsteonProperties } from "../data/device";
 
+const hex = (value?: number | null): string =>
+  value === undefined || value === null
+    ? "?"
+    : "0x" + value.toString(16).padStart(2, "0").toUpperCase();
+
 @customElement("insteon-device-overview-page")
 class InsteonDeviceOverviewPage extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
@@ -85,7 +90,7 @@ class InsteonDeviceOverviewPage extends LitElement {
           <div class="page-header">
             <div class="identity">
               <h1>${this._device?.name}</h1>
-              ${this._device ? this._renderChips(this._device) : nothing}
+              ${this._device ? this._renderIdentity(this._device) : nothing}
             </div>
             <div class="logo">
               <img
@@ -103,54 +108,45 @@ class InsteonDeviceOverviewPage extends LitElement {
     `;
   }
 
-  private _renderChips(device: InsteonDevice): TemplateResult {
+  private _renderIdentity(device: InsteonDevice): TemplateResult {
     const model = [device.description, device.model].filter(Boolean).join(" ");
     return html`
       <div class="chips">
         ${model ? html`<span class="chip">${model}</span>` : nothing}
         <span class="chip mono">${device.address}</span>
-        ${this._categoryChip(device)}
-        ${device.engine_version
-          ? html`<span class="chip">${device.engine_version.toUpperCase()}</span>`
-          : nothing}
-        ${this._firmwareChip(device)}
         <span class="chip ${this._aldbClass(device.aldb_status)}">
           ${this.insteon.localize("device.overview.fields.aldb_status")}:
           ${this._capitalize(device.aldb_status)}
         </span>
+        ${device.firmware === 0
+          ? html`<span class="chip warn">
+              ${this.insteon.localize("device.overview.not_identified")}
+            </span>`
+          : nothing}
         ${device.is_battery
           ? html`<span class="chip">
               ${this.insteon.localize("device.overview.battery_device")}
             </span>`
           : nothing}
       </div>
+      <div class="details">${this._details(device).join(" · ")}</div>
     `;
   }
 
-  private _categoryChip(device: InsteonDevice): TemplateResult | typeof nothing {
-    if (device.cat === undefined || device.cat === null) {
-      return nothing;
+  private _details(device: InsteonDevice): string[] {
+    const details: string[] = [];
+    if (device.cat !== undefined && device.cat !== null) {
+      details.push(`${hex(device.cat)} / ${hex(device.subcat)}`);
     }
-    const cat = "0x" + device.cat.toString(16).padStart(2, "0").toUpperCase();
-    const subcat =
-      device.subcat === undefined || device.subcat === null
-        ? "?"
-        : "0x" + device.subcat.toString(16).padStart(2, "0").toUpperCase();
-    return html`<span class="chip mono">${cat} / ${subcat}</span>`;
-  }
-
-  private _firmwareChip(device: InsteonDevice): TemplateResult | typeof nothing {
-    if (device.firmware === undefined || device.firmware === null) {
-      return nothing;
+    if (device.engine_version) {
+      details.push(device.engine_version.toUpperCase());
     }
-    if (device.firmware === 0) {
-      return html`<span class="chip warn">
-        ${this.insteon.localize("device.overview.not_identified")}
-      </span>`;
+    if (device.firmware) {
+      details.push(
+        `${this.insteon.localize("device.overview.fields.firmware")} ${device.firmware}`,
+      );
     }
-    return html`<span class="chip">
-      ${this.insteon.localize("device.overview.fields.firmware")} ${device.firmware}
-    </span>`;
+    return details;
   }
 
   private _aldbClass(status: string): string {
@@ -172,7 +168,7 @@ class InsteonDeviceOverviewPage extends LitElement {
     const layout = plateLayout(device.cat, device.subcat);
     if (layout === "none") {
       return html`
-        <ha-card outlined .header=${this.insteon.localize("device.overview.fields.buttons")}>
+        <ha-card outlined .header=${this._cardHeader(groups.length)}>
           <div class="card-content">
             <div class="buttons">
               ${groups.map(
@@ -189,7 +185,7 @@ class InsteonDeviceOverviewPage extends LitElement {
       `;
     }
     return html`
-      <ha-card outlined .header=${this.insteon.localize("device.overview.fields.buttons")}>
+      <ha-card outlined .header=${this._cardHeader(groups.length)}>
         <div class="card-content">
           <div class="plate-and-pane">
             <insteon-device-plate
@@ -205,6 +201,12 @@ class InsteonDeviceOverviewPage extends LitElement {
         </div>
       </ha-card>
     `;
+  }
+
+  private _cardHeader(count: number): string {
+    return this.insteon.localize(
+      count > 1 ? "device.overview.fields.buttons" : "device.overview.fields.button",
+    );
   }
 
   private _handleButtonSelected(ev: CustomEvent<{ group: number }>) {
@@ -262,11 +264,12 @@ class InsteonDeviceOverviewPage extends LitElement {
     const records = this._aldb || [];
     const controls = controlRows(records, group);
     const respondsTo = responderRows(records, group, singleButton);
-    const name = this._buttonLabel(buttons[group] || "");
+    const layout = plateLayout(device.cat, device.subcat);
     return html`
       <div class="pane">
-        <div class="pane-title">${name}</div>
+        <div class="pane-title">${buttonTitle(layout, group, this.insteon.localize)}</div>
         <div class="pane-sub">
+          ${this._buttonLabel(buttons[group] || "")} ·
           ${this.insteon.localize("device.overview.pane.group")} ${group}
           ${this._paneRole(device, group)}
         </div>
@@ -432,6 +435,16 @@ class InsteonDeviceOverviewPage extends LitElement {
           margin: 8px;
         }
 
+        insteon-device-plate {
+          --plate-scale: 1.25;
+        }
+
+        .details {
+          font-family: var(--ha-font-family-code, monospace);
+          font-size: 12px;
+          color: var(--secondary-text-color);
+        }
+
         .plate-and-pane {
           display: flex;
           gap: 28px;
@@ -448,10 +461,10 @@ class InsteonDeviceOverviewPage extends LitElement {
           font-size: 16px;
           font-weight: 500;
           color: var(--primary-text-color);
-          text-transform: capitalize;
         }
 
         .pane-sub {
+          text-transform: capitalize;
           font-size: 12.5px;
           color: var(--secondary-text-color);
           margin-bottom: 12px;
