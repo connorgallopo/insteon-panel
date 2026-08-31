@@ -199,6 +199,7 @@ describe("rowDetail", () => {
   it("says nothing for single button devices and unknown layouts", () => {
     expect(rowDetail(deviceRow(1, 1), "controlled_by", "paddle_bar")).toEqual({ kind: "none" });
     expect(rowDetail(deviceRow(1, 1), "controlled_by", undefined)).toEqual({ kind: "none" });
+    expect(rowDetail(deviceRow(1, 1), "controlled_by", "none")).toEqual({ kind: "none" });
   });
 });
 

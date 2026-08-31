@@ -116,6 +116,9 @@ export const rowDetail = (
     return { kind: "none" };
   }
   const groups = plateGroups(targetLayout);
+  if (groups.length === 0) {
+    return { kind: "none" };
+  }
   const raw = section === "controls" ? row.data3 : row.group;
   const group = section === "controls" && raw === 0 && groups.includes(1) ? 1 : raw;
   if (!groups.includes(group)) {
