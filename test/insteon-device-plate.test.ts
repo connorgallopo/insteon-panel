@@ -32,28 +32,36 @@ describe("insteon-device-plate scaffold", () => {
   });
 
   it("fires the selected group on click and on enter", async () => {
-    const el = await renderPlate(0x01, 0x24);
+    const el = await renderPlate(0x01, 0x42);
     const seen: number[] = [];
     el.addEventListener("insteon-button-selected", (ev) => {
       seen.push((ev as CustomEvent<{ group: number }>).detail.group);
     });
-    const key = root(el).querySelector(".key")!;
+    const key = root(el).querySelector('.key[data-group="3"]')!;
     click(key);
     key.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-    expect(seen).toEqual([1, 1]);
+    expect(seen).toEqual([3, 3]);
   });
 
   it("labels keys from the names map", async () => {
-    const el = await renderPlate(0x01, 0x24, { 1: "Paddle" });
-    expect(root(el).querySelector(".key")!.getAttribute("aria-label")).toBe("Paddle");
+    const el = await renderPlate(0x01, 0x42, { 3: "Button A" });
+    expect(root(el).querySelector('.key[data-group="3"]')!.getAttribute("aria-label")).toBe(
+      "Button A",
+    );
   });
 
-  it("does not ring the only key on a single button device", async () => {
+  it("renders a single button plate as a picture with an inert key", async () => {
     const el = await renderPlate(0x01, 0x24);
     el.selected = 1;
+    el.label = "SwitchLinc Dimmer";
     await el.updateComplete;
-    expect(root(el).querySelector(".key.selected")).toBeNull();
-    expect(root(el).querySelector(".key")!.getAttribute("aria-pressed")).toBe("false");
+    const r = root(el);
+    expect(r.querySelector("svg")!.getAttribute("role")).toBe("img");
+    expect(r.querySelector("svg")!.getAttribute("aria-label")).toBe("SwitchLinc Dimmer");
+    const key = r.querySelector(".key")!;
+    expect(key.classList.contains("selected")).toBe(false);
+    expect(key.hasAttribute("role")).toBe(false);
+    expect(key.hasAttribute("tabindex")).toBe(false);
   });
 });
 
@@ -338,5 +346,52 @@ describe("load caption", () => {
     expect(captions.length).toBe(1);
     expect(captions[0].textContent).toContain("ON/OFF");
     expect(root(el).querySelector(".key .caption")).toBeNull();
+  });
+});
+
+describe("plate keys as tabs", () => {
+  it("marks the keys as tabs with the tab stop on the selected key", async () => {
+    const el = await renderPlate(0x01, 0x42);
+    el.label = "Keypad";
+    el.selected = 4;
+    await el.updateComplete;
+    const r = root(el);
+    expect(r.querySelector("svg")!.getAttribute("role")).toBe("tablist");
+    expect(r.querySelector("svg")!.getAttribute("aria-label")).toBe("Keypad");
+    const keys = [...r.querySelectorAll(".key")];
+    expect(keys.map((k) => k.getAttribute("role"))).toEqual(["tab", "tab", "tab", "tab", "tab"]);
+    expect(keys.map((k) => k.getAttribute("data-group"))).toEqual(["1", "3", "4", "5", "6"]);
+    expect(keys.map((k) => k.getAttribute("tabindex"))).toEqual(["-1", "-1", "0", "-1", "-1"]);
+    expect(keys.map((k) => k.getAttribute("aria-selected"))).toEqual([
+      "false",
+      "false",
+      "true",
+      "false",
+      "false",
+    ]);
+    expect(r.querySelector("title")).toBeNull();
+  });
+
+  it("gives the first key the tab stop before anything is selected", async () => {
+    const el = await renderPlate(0x01, 0x59);
+    const keys = [...root(el).querySelectorAll(".key")];
+    expect(keys.map((k) => k.getAttribute("tabindex"))).toEqual(["0", "-1", "-1", "-1"]);
+  });
+
+  it("moves the selection with the arrow, home and end keys", async () => {
+    const el = await renderPlate(0x01, 0x42);
+    el.selected = 6;
+    await el.updateComplete;
+    const seen: number[] = [];
+    el.addEventListener("insteon-button-selected", (ev) => {
+      seen.push((ev as CustomEvent<{ group: number }>).detail.group);
+    });
+    const key = root(el).querySelector('.key[data-group="6"]')!;
+    for (const name of ["ArrowRight", "ArrowLeft", "Home", "End", "Tab"]) {
+      key.dispatchEvent(
+        new KeyboardEvent("keydown", { key: name, bubbles: true, cancelable: true }),
+      );
+    }
+    expect(seen).toEqual([1, 5, 1, 6]);
   });
 });

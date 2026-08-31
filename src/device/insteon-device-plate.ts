@@ -1,9 +1,11 @@
 import type { CSSResultGroup, SVGTemplateResult, TemplateResult } from "lit";
 import { css, html, LitElement, nothing, svg } from "lit";
 import { customElement, property } from "lit/decorators";
+import { ifDefined } from "lit/directives/if-defined";
 import { fireEvent } from "@ha/common/dom/fire_event";
 import type { PlateLayout } from "./plate-layout";
 import { plateGroups, plateLayout } from "./plate-layout";
+import { nextGroup } from "./roving";
 
 declare global {
   interface HASSDomEvents {
@@ -59,8 +61,24 @@ export class InsteonDevicePlate extends LitElement {
 
   @property() public loadCaption?: string;
 
+  @property() public label?: string;
+
   private get _layout(): PlateLayout {
     return plateLayout(this.cat, this.subcat);
+  }
+
+  private get _groups(): number[] {
+    return plateGroups(this._layout);
+  }
+
+  private get _focusGroup(): number | undefined {
+    const groups = this._groups;
+    if (groups.length < 2) {
+      return undefined;
+    }
+    return this.selected !== undefined && groups.includes(this.selected)
+      ? this.selected
+      : groups[0];
   }
 
   protected render(): TemplateResult | typeof nothing {
@@ -86,10 +104,21 @@ export class InsteonDevicePlate extends LitElement {
     return draw ? draw() : nothing;
   }
 
+  private get _role(): "tablist" | "img" {
+    return this._groups.length > 1 ? "tablist" : "img";
+  }
+
   private _wall(content: SVGTemplateResult): TemplateResult {
     return html`
       <div class="plate">
-        <svg class="insert" viewBox="0 0 80 160">${content}</svg>
+        <svg
+          class="insert"
+          viewBox="0 0 80 160"
+          role=${this._role}
+          aria-label=${ifDefined(this.label)}
+        >
+          ${content}
+        </svg>
       </div>
       ${this.loadCaption ? html`<div class="caption">${this.loadCaption}</div>` : nothing}
     `;
@@ -97,7 +126,13 @@ export class InsteonDevicePlate extends LitElement {
 
   private _body(w: number, h: number, content: SVGTemplateResult): TemplateResult {
     return html`
-      <svg class="body" viewBox="0 0 ${w} ${h}" style="width: calc(${w}px * var(--plate-scale, 1))">
+      <svg
+        class="body"
+        viewBox="0 0 ${w} ${h}"
+        style="width: calc(${w}px * var(--plate-scale, 1))"
+        role=${this._role}
+        aria-label=${ifDefined(this.label)}
+      >
         ${content}
       </svg>
       ${this.loadCaption ? html`<div class="caption">${this.loadCaption}</div>` : nothing}
@@ -109,28 +144,37 @@ export class InsteonDevicePlate extends LitElement {
   }
 
   private _key(group: number, shape: SVGTemplateResult, cls = ""): SVGTemplateResult {
-    const multi = plateGroups(this._layout).length > 1;
-    const selected = multi && this.selected === group;
+    if (this._groups.length < 2) {
+      return svg`<g class="key ${cls}" data-group=${group}>${shape}</g>`;
+    }
+    const selected = this.selected === group;
     const name = this.names[group] ?? String(group);
     return svg`
       <g
         class="key ${cls} ${selected ? "selected" : ""}"
-        role="button"
-        tabindex="0"
+        data-group=${group}
+        role="tab"
+        tabindex=${this._focusGroup === group ? "0" : "-1"}
+        aria-selected=${selected ? "true" : "false"}
         aria-label=${name}
-        aria-pressed=${selected ? "true" : "false"}
         @click=${() => this._select(group)}
-        @keydown=${(ev: KeyboardEvent) => {
-          if (ev.key === "Enter" || ev.key === " ") {
-            ev.preventDefault();
-            this._select(group);
-          }
-        }}
+        @keydown=${(ev: KeyboardEvent) => this._onKeydown(ev, group)}
       >
-        <title>${name}</title>
         ${shape}
       </g>
     `;
+  }
+
+  private _onKeydown(ev: KeyboardEvent, group: number) {
+    const next = nextGroup(ev.key, this._groups, group);
+    if (next === undefined) {
+      return;
+    }
+    ev.preventDefault();
+    this._select(next);
+    this.updateComplete.then(() => {
+      this.shadowRoot?.querySelector<SVGGElement>(`.key[data-group="${next}"]`)?.focus();
+    });
   }
 
   private _switchlinc(indicators: SVGTemplateResult): SVGTemplateResult {
@@ -460,12 +504,12 @@ export class InsteonDevicePlate extends LitElement {
         pointer-events: none;
       }
 
-      .key {
+      .key[role="tab"] {
         cursor: pointer;
         outline: none;
       }
 
-      .key:hover .face {
+      .key[role="tab"]:hover .face {
         fill: var(--key-hover);
       }
 
@@ -537,7 +581,7 @@ export class InsteonDevicePlate extends LitElement {
         stroke: var(--hairline);
       }
 
-      .key:hover .face.i3 {
+      .key[role="tab"]:hover .face.i3 {
         fill: var(--key-hover);
       }
 
@@ -546,7 +590,7 @@ export class InsteonDevicePlate extends LitElement {
         stroke: none;
       }
 
-      .key:hover .hit {
+      .key[role="tab"]:hover .hit {
         stroke: var(--hairline);
         stroke-width: 1;
       }
