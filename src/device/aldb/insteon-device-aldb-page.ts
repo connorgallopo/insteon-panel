@@ -11,7 +11,7 @@ import "@ha/components/ha-fab";
 import "@ha/components/ha-button";
 import "@ha/components/ha-list-item";
 import type { Insteon, InsteonDevice } from "../../data/insteon";
-import type { ALDBRecord } from "../../data/device";
+import type { ALDBRecord, AldbNotification } from "../../data/device";
 import {
   fetchInsteonDevice,
   fetchInsteonALDB,
@@ -24,6 +24,7 @@ import {
   aldbChangeRecordSchema,
   aldbNewRecordSchema,
   removeInsteonDevice,
+  subscribeAldbLoading,
 } from "../../data/device";
 import "@ha/layouts/hass-tabs-subpage";
 import type { HomeAssistant, Route } from "@ha/types";
@@ -449,7 +450,7 @@ class InsteonDeviceALDBPage extends LitElement {
     navigate("/insteon/devices");
   };
 
-  private _handleMessage(message: any): void {
+  private _handleMessage(message: AldbNotification): void {
     if (message.type === "record_loaded") {
       this._getRecords();
     }
@@ -457,7 +458,7 @@ class InsteonDeviceALDBPage extends LitElement {
       fetchInsteonDevice(this.hass, this.deviceId!).then((device) => {
         this._device = device;
       });
-      this._isLoading = message.is_loading;
+      this._isLoading = message.is_loading ?? false;
       if (!message.is_loading) {
         this._unsubscribe();
       }
@@ -478,12 +479,8 @@ class InsteonDeviceALDBPage extends LitElement {
     if (!this.hass) {
       return;
     }
-    this._subscribed = this.hass.connection.subscribeMessage(
-      (message) => this._handleMessage(message),
-      {
-        type: "insteon/aldb/notify",
-        device_address: this._device?.address,
-      },
+    this._subscribed = subscribeAldbLoading(this.hass, this._device!.address, (message) =>
+      this._handleMessage(message),
     );
     this._refreshDevicesTimeoutHandle = window.setTimeout(() => this._unsubscribe(), 1200000);
   }
