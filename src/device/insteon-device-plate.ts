@@ -45,7 +45,6 @@ const kplFace = (x: number, y: number, w: number): SVGTemplateResult =>
 
 const sceneKey = (x: number, y: number, letter: string): SVGTemplateResult => svg`
   ${kplFace(x, y, KPL_KEY.w)}
-  ${print(x + KPL_KEY.w / 2, y + 12, "scene", 3.2)}
   ${print(x + KPL_KEY.w / 2, y + 24, letter, 6.5)}
 `;
 
@@ -267,8 +266,7 @@ export class InsteonDevicePlate extends LitElement {
         1,
         svg`
           ${kplFace(6, 6, KPL_KEY.w)}
-          ${print(22.75, 19, "MAIN", 4.2, "bold")}
-          ${print(22.75, 27, "On/Off", 4)}
+          ${print(22.75, 24, "MAIN", 6, "bold")}
         `,
       )}
       ${letters.map((letter, i) => {
@@ -341,13 +339,10 @@ export class InsteonDevicePlate extends LitElement {
     const controls = dimmer
       ? svg`
           <path class="keyed" d="M14 4 h52 v30 l-26 8 l-26 -8 z"></path>
-          ${print(40, 46, "LAMPS ONLY", 4, "bold")}
-          ${print(40, 50.5, "REQUIRES OUTLET DIMMER KEY", 2.4)}
           <rect class="btn" x="9.6" y="67.2" width="14.4" height="28.8" rx="7.2"></rect>
           ${led(56, 83.2, 2.4)}
         `
       : svg`
-          ${print(40, 34, "Controlled", 3.2)}
           ${ground(40, 38, 11, 12)}
           ${led(40, 72, 1.8)}
           <rect class="btn" x="31" y="80" width="18" height="8" rx="4"></rect>
@@ -366,7 +361,10 @@ export class InsteonDevicePlate extends LitElement {
       <rect class="opening" x="32" y="48" width="16" height="46" rx="1"></rect>
       ${this._key(
         1,
-        svg`<rect class="face lever" x="34" y="44" width="12" height="30" rx="3"></rect>`,
+        svg`
+          <rect class="hit" x="32" y="40" width="16" height="46" rx="2"></rect>
+          <rect class="face lever" x="34" y="44" width="12" height="30" rx="3"></rect>
+        `,
       )}
       ${led(40, 104, 1.5)}
       ${tab(24, 102.5, 8, 3)}
@@ -374,10 +372,10 @@ export class InsteonDevicePlate extends LitElement {
   }
 
   private _inline(): SVGTemplateResult {
-    const squares: [number, number, string][] = [
-      [46, 29, "ON"],
-      [15, 74, "SET"],
-      [46, 74, "OFF"],
+    const squares: [number, number][] = [
+      [46, 29],
+      [15, 74],
+      [46, 74],
     ];
     return svg`
       ${this._key(1, svg`<rect class="face" x="0.5" y="0.5" width="79" height="119" rx="3"></rect>`)}
@@ -385,10 +383,7 @@ export class InsteonDevicePlate extends LitElement {
       ${led(26, 40, 1.5)}
       ${led(8, 40, 1)}
       ${squares.map(
-        ([x, y, text]) => svg`
-          <rect class="btn" x=${x} y=${y} width="22" height="22" rx="3"></rect>
-          ${print(x + 11, y + 29, text, 3.5)}
-        `,
+        ([x, y]) => svg`<rect class="btn" x=${x} y=${y} width="22" height="22" rx="3"></rect>`,
       )}
     `;
   }
@@ -400,16 +395,11 @@ export class InsteonDevicePlate extends LitElement {
       ${ground(40, 40, 10, 11)}
       <rect class="led strip" x="11.3" y="3" width="1.4" height="6.4" rx="0.7"></rect>
       <rect class="btn" x="80" y="48" width="5" height="30" rx="2"></rect>
-      ${print(40, 120, "INSTEON", 4.5, "wordmark")}
     `;
   }
 
   private _micro(): SVGTemplateResult {
-    const rows: [number, string][] = [
-      [20, "On"],
-      [29, "Off"],
-      [38, "Set"],
-    ];
+    const rows = [20, 29, 38];
     return svg`
       ${this._key(
         1,
@@ -417,14 +407,8 @@ export class InsteonDevicePlate extends LitElement {
       )}
       ${led(15, 11, 1.55)}
       <path class="glyph" d="M9 17 v24 M9 20 h10 M9 29 h10 M9 38 h10"></path>
-      ${rows.map(
-        ([y, text]) => svg`
-          <circle class="btn" cx="14" cy=${y} r="1.6"></circle>
-          ${print(22, y + 1.2, text, 3, "left")}
-        `,
-      )}
+      ${rows.map((y) => svg`<circle class="btn" cx="14" cy=${y} r="1.6"></circle>`)}
       ${[23, 39, 61, 77].map((y) => svg`<circle class="term" cx="91" cy=${y} r="3.3"></circle>`)}
-      ${print(50, 92, "INSTEON", 5, "wordmark")}
     `;
   }
 
@@ -433,9 +417,7 @@ export class InsteonDevicePlate extends LitElement {
     return svg`
       <rect class="frame" x="0.5" y="0.5" width="79" height="175" rx="3"></rect>
       ${led(29.6, 8.8, 1.5)}
-      ${print(29.6, 15, "LIGHT", 3)}
       ${led(51.2, 8.8, 1.5)}
-      ${print(51.2, 15, "FAN", 3)}
       <path class="hair vents" d=${vents}></path>
       ${this._key(1, hit(20, 76))}
       ${this._key(2, hit(98, 77))}
@@ -450,24 +432,22 @@ export class InsteonDevicePlate extends LitElement {
         align-items: center;
         gap: 6px;
         --plate-face: #f7f7f7;
-        --plate-edge: #d9d9d9;
         --key-face: #fdfdfd;
         --key-hover: #f0f0f0;
-        --key-edge: #c4c4c4;
+        --key-edge: #8c8c8c;
         --hairline: #d6d6d6;
         --slot: #4a4a4a;
-        --print: #8a8a8a;
-        --led-ring: #9a9a9a;
+        --print: #666666;
+        --led-ring: #8c8c8c;
         --tab: #ffffff;
         --tab-dark: #222222;
       }
 
       .plate {
         background: var(--plate-face);
-        border: 1px solid var(--plate-edge);
+        border: 1px solid var(--divider-color, #d9d9d9);
         border-radius: 3px;
         padding: calc(20px * var(--plate-scale, 1)) calc(21px * var(--plate-scale, 1));
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
       }
 
       .insert {
@@ -587,11 +567,11 @@ export class InsteonDevicePlate extends LitElement {
 
       .hit {
         fill: transparent;
-        stroke: none;
+        stroke: var(--key-edge);
+        stroke-width: 0.6;
       }
 
       .key[role="tab"]:hover .hit {
-        stroke: var(--hairline);
         stroke-width: 1;
       }
 
@@ -633,20 +613,11 @@ export class InsteonDevicePlate extends LitElement {
         stroke: none;
       }
 
-      .print.wordmark {
-        font-weight: 700;
-        letter-spacing: 0.08em;
-      }
-
       .glyph {
         fill: none;
         stroke: var(--slot);
         stroke-width: 1.2;
         pointer-events: none;
-      }
-
-      .print.left {
-        text-anchor: start;
       }
 
       .term {

@@ -159,7 +159,8 @@ describe("keypadlinc 6", () => {
     const a = keys[1].querySelector(".face")!;
     expect(Number(a.getAttribute("width"))).toBeCloseTo(33.5, 1);
     expect(Number(a.getAttribute("height"))).toBeCloseTo(33.75, 1);
-    expect(r.querySelectorAll(".print").length).toBe(10);
+    expect(r.querySelectorAll(".print").length).toBe(6);
+    expect(r.textContent).not.toContain("scene");
     expect(r.querySelector(".tab")!.getAttribute("width")).toBe("18");
     expect(r.querySelectorAll(".led").length).toBe(0);
   });
@@ -180,7 +181,8 @@ describe("keypadlinc 8", () => {
     const keys = [...r.querySelectorAll(".key")];
     expect(keys.length).toBe(8);
     expect(keys[0].textContent).toContain("MAIN");
-    expect(keys[0].textContent).toContain("On/Off");
+    expect(keys[0].textContent).not.toContain("On/Off");
+    expect(keys[0].querySelector(".print")!.getAttribute("font-size")).toBe("6");
     expect(keys[7].textContent).toContain("H");
     expect(r.querySelectorAll(".print.bold").length).toBe(1);
   });
@@ -230,12 +232,12 @@ describe("i3 outlet", () => {
 });
 
 describe("outletlinc dimmer", () => {
-  it("keys only the upper receptacle, prints lamps only and draws a vertical oval", async () => {
+  it("keys only the upper receptacle and draws a vertical oval", async () => {
     const el = await renderPlate(0x01, 0x21);
     const r = root(el);
     expect(r.querySelectorAll(".key").length).toBe(1);
     expect(r.querySelector(".keyed")).not.toBeNull();
-    expect(r.textContent).toContain("LAMPS ONLY");
+    expect(r.querySelectorAll(".print").length).toBe(0);
     const oval = r.querySelector("rect.btn")!;
     expect(oval.getAttribute("height")).toBe("28.8");
     expect(oval.getAttribute("x")).toBe("9.6");
@@ -248,11 +250,11 @@ describe("outletlinc dimmer", () => {
 });
 
 describe("outletlinc relay", () => {
-  it("prints controlled and centres the led above a pill", async () => {
+  it("centres the led above a pill", async () => {
     const el = await renderPlate(0x02, 0x08);
     const r = root(el);
     expect(r.querySelector(".keyed")).toBeNull();
-    expect(r.textContent).toContain("Controlled");
+    expect(r.querySelectorAll(".print").length).toBe(0);
     expect(r.querySelectorAll(".key").length).toBe(1);
     const pill = r.querySelector("rect.btn")!;
     expect(pill.getAttribute("x")).toBe("31");
@@ -286,47 +288,45 @@ describe("in-line module", () => {
     expect(r.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 80 120");
     expect(r.querySelectorAll("circle.btn").length).toBe(1);
     expect(r.querySelectorAll("rect.btn").length).toBe(3);
-    expect(r.textContent).toContain("SET");
+    expect(r.querySelectorAll(".print").length).toBe(0);
     expect(r.querySelectorAll(".led").length).toBe(2);
     expect(r.querySelectorAll(".key").length).toBe(1);
   });
 });
 
 describe("plug-in module", () => {
-  it("draws a tall body with a receptacle, led strip, edge rocker and wordmark", async () => {
+  it("draws a tall body with a receptacle, led strip and edge rocker", async () => {
     const el = await renderPlate(0x01, 0x0e);
     const r = root(el);
     expect(r.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 86 127");
     expect(r.querySelector(".led.strip")).not.toBeNull();
-    expect(r.querySelector(".wordmark")!.textContent).toBe("INSTEON");
+    expect(r.querySelector(".wordmark")).toBeNull();
     expect(r.querySelectorAll(".slot").length).toBe(3);
     expect(r.querySelector("rect.btn")!.getAttribute("x")).toBe("80");
   });
 });
 
 describe("micro module", () => {
-  it("draws an octagon body with the on/off/set glyph, paired terminals and wordmark", async () => {
+  it("draws an octagon body with the on/off/set glyph and paired terminals", async () => {
     const el = await renderPlate(0x01, 0x35);
     const r = root(el);
     expect(r.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 100 100");
     expect(r.querySelector("polygon.face")).not.toBeNull();
     expect(r.querySelectorAll(".term").length).toBe(4);
     expect(r.querySelectorAll("circle.btn").length).toBe(3);
-    expect(r.textContent).toContain("Set");
-    expect(r.querySelector(".wordmark")).not.toBeNull();
+    expect(r.querySelectorAll(".print").length).toBe(0);
     const ledEl = r.querySelector(".led")!;
     expect(ledEl.getAttribute("r")).toBe("1.55");
   });
 });
 
 describe("fanlinc", () => {
-  it("draws two leds labelled light and fan with two hit regions", async () => {
+  it("draws two leds and two hit regions", async () => {
     const el = await renderPlate(0x01, 0x2e, { 1: "Light", 2: "Fan" });
     const r = root(el);
     expect(r.querySelector("svg")!.getAttribute("viewBox")).toBe("0 0 80 176");
     expect(r.querySelectorAll(".led").length).toBe(2);
-    expect(r.textContent).toContain("LIGHT");
-    expect(r.textContent).toContain("FAN");
+    expect(r.querySelectorAll(".print").length).toBe(0);
     const keys = r.querySelectorAll(".key");
     expect(keys.length).toBe(2);
     expect(keys[1].getAttribute("aria-label")).toBe("Fan");
@@ -393,5 +393,23 @@ describe("plate keys as tabs", () => {
       );
     }
     expect(seen).toEqual([1, 5, 1, 6]);
+  });
+});
+
+describe("plate legibility", () => {
+  it("gives the toggle lever a hit area that covers the opening", async () => {
+    const el = await renderPlate(0x01, 0x17);
+    const hit = root(el).querySelector(".key .hit")!;
+    expect(hit).not.toBeNull();
+    expect(Number(hit.getAttribute("width"))).toBeGreaterThanOrEqual(16);
+    expect(Number(hit.getAttribute("height"))).toBeGreaterThanOrEqual(46);
+  });
+
+  it("uses print and edge colours that clear the contrast thresholds", async () => {
+    const el = await renderPlate(0x01, 0x42);
+    const cssText = (el.constructor as typeof InsteonDevicePlate).styles.toString();
+    expect(cssText).toContain("--print: #666666");
+    expect(cssText).toContain("--key-edge: #8c8c8c");
+    expect(cssText).toContain("--led-ring: #8c8c8c");
   });
 });
