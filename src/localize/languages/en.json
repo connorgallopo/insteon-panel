@@ -139,7 +139,7 @@
       "delete_scene": "Delete scene",
       "add_device": "Add device",
       "save_scene": "Save scene",
-      "add_default_links": "Add Default Links",
+      "add_default_links": "Add default links",
       "add_override": "Add override",
       "delete_override": "Delete override"
     },
@@ -181,16 +181,36 @@
       "caption": "Overview",
       "battery_device": "Battery powered",
       "not_identified": "Not identified",
+      "connections": "Connections",
+      "select_hint": "Select a button to see what it controls",
+      "records_error": "Could not read the link database from Home Assistant.",
+      "retry": "Retry",
+      "open_in_ha": "Open in Home Assistant",
+      "no_links_stored": "No links stored on this device",
+      "modem_scenes": "Scenes",
+      "scene_devices": "Scene {group} · {count} devices",
+      "modem_devices": "{count} devices Home Assistant can control",
+      "see_aldb": "The full record list is on the All-Link Database tab.",
       "pane": {
         "controls": "Controls",
-        "responds_to": "Responds to",
+        "controlled_by": "Controlled by",
         "no_links": "No connections",
-        "group": "group",
-        "load_button": "load button",
-        "scene_button": "scene button",
+        "group": "Group {group}",
+        "load_button": "Load button",
+        "scene_button": "Scene button",
         "load_caption": "Load button: {label}",
-        "from_group": "from group {group}",
-        "times": "×{count}"
+        "home_assistant": "Home Assistant",
+        "ha_notified": "Notified when this button is used",
+        "ha_controls": "Can control this button",
+        "scene": "Scene {group}",
+        "scene_named": "Scene {group}: {name}",
+        "not_a_button": "Group {group}, not a button",
+        "other_links": "Other links ({count})",
+        "other_links_hint": "These links are not tied to a button. The All-Link Database tab lists every record.",
+        "controls_row": "Controls {name}",
+        "controlled_by_row": "Controlled by {name}",
+        "ha_no_control_link": "Home Assistant has no control link to this device",
+        "button_not_notified": "Home Assistant is not notified when this button is used"
       },
       "button": {
         "named": "Button {label}",
@@ -205,13 +225,10 @@
         "load": "Load"
       },
       "fields": {
-        "model": "Model",
-        "address": "Insteon address",
         "category": "Category / subcategory",
         "engine_version": "Engine version",
         "firmware": "Firmware",
         "aldb_status": "Link database",
-        "battery": "Power",
         "buttons": "Buttons",
         "button": "Button"
       }
@@ -282,7 +299,7 @@
       "create": "Create ALDB Record",
       "show": "Show Unused",
       "hide": "Hide Unused",
-      "add_default_links": "Add Default Links",
+      "add_default_links": "Add default links",
       "download": "Download"
     },
     "fields": {
