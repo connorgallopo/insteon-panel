@@ -23,12 +23,13 @@ import {
   addDefaultLinks,
   aldbChangeRecordSchema,
   aldbNewRecordSchema,
-  removeInsteonDevice,
   subscribeAldbLoading,
 } from "../../data/device";
 import "@ha/layouts/hass-tabs-subpage";
 import type { HomeAssistant, Route } from "@ha/types";
 import { insteonDeviceTabs } from "../insteon-device-router";
+import "../insteon-device-header";
+import { confirmDeleteDevice } from "../delete-device";
 import "./insteon-aldb-data-table";
 import type { HASSDomEvent } from "@ha/common/dom/fire_event";
 import type { RowClickedEvent } from "@ha/components/data-table/ha-data-table";
@@ -129,47 +130,23 @@ class InsteonDeviceALDBPage extends LitElement {
         hasFab
       >
         ${this.narrow
-          ? html`
-              <div slot="header" class="header fullwidth">
-                <div slot="header" class="narrow-header-left">${this._device?.name}</div>
-                <div slot="header" class="narrow-header-right">${this._generateActionMenu()}</div>
-              </div>
-            `
+          ? html`<insteon-device-header
+              slot="header"
+              narrow
+              .hass=${this.hass}
+              .insteon=${this.insteon}
+              .device=${this._device}
+              >${this._generateActionMenu()}</insteon-device-header
+            >`
           : ""}
         <div class="container">
           ${!this.narrow
-            ? html`
-                <div class="page-header fullwidth">
-                  <table>
-                    <tr>
-                      <td>
-                        <div class="device-name">
-                          <h1>${this._device?.name}</h1>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <div class="aldb-status">
-                          ALDB Status:
-                          ${this._device
-                            ? this.insteon!.localize("aldb.status." + this._device?.aldb_status)
-                            : ""}
-                        </div>
-                      </td>
-                    </tr>
-                  </table>
-                  <div class="logo header-right">
-                    <img
-                      src="https://brands.home-assistant.io/insteon/logo.png"
-                      referrerpolicy="no-referrer"
-                      @load=${this._onImageLoad}
-                      @error=${this._onImageError}
-                    />
-                    ${this._generateActionMenu()}
-                  </div>
-                </div>
-              `
+            ? html`<insteon-device-header
+                .hass=${this.hass}
+                .insteon=${this.insteon}
+                .device=${this._device}
+                >${this._generateActionMenu()}</insteon-device-header
+              >`
             : ""}
           <insteon-aldb-data-table
             .insteon=${this.insteon}
@@ -263,14 +240,6 @@ class InsteonDeviceALDBPage extends LitElement {
     });
   }
 
-  private _onImageLoad(ev) {
-    ev.target.style.display = "inline-block";
-  }
-
-  private _onImageError(ev) {
-    ev.target.style.display = "none";
-  }
-
   private async _onLoadALDBClick() {
     await showConfirmationDialog(this, {
       text: this.insteon.localize("common.warn.load"),
@@ -321,39 +290,6 @@ class InsteonDeviceALDBPage extends LitElement {
     writeALDB(this.hass, this._device!.address);
     this._isLoading = true;
     this._records = [];
-  }
-
-  private async _onDeleteDevice() {
-    await showConfirmationDialog(this, {
-      text: this.insteon.localize("common.warn.delete"),
-      confirmText: this.insteon!.localize("common.yes"),
-      dismissText: this.insteon!.localize("common.no"),
-      confirm: async () => this._checkScope(),
-      warning: true,
-    });
-  }
-
-  private async _delete(remove_all_refs: boolean) {
-    await removeInsteonDevice(this.hass, this._device!.address, remove_all_refs);
-    navigate("/insteon");
-  }
-
-  private async _checkScope() {
-    if (this._device!.address.includes("X10")) {
-      this._delete(false);
-      return;
-    }
-    const remove_all_refs = await showConfirmationDialog(this, {
-      title: this.insteon.localize("device.remove_all_refs.title"),
-      text: html` ${this.insteon.localize("device.remove_all_refs.description")}<br /><br />
-        ${this.insteon.localize("device.remove_all_refs.confirm_description")}<br />
-        ${this.insteon.localize("device.remove_all_refs.dismiss_description")}`,
-      confirmText: this.insteon!.localize("common.yes"),
-      dismissText: this.insteon!.localize("common.no"),
-      warning: true,
-      destructive: true,
-    });
-    this._delete(remove_all_refs);
   }
 
   private async _onResetALDBClick() {
@@ -437,7 +373,7 @@ class InsteonDeviceALDBPage extends LitElement {
         await this._download();
         break;
       case 5:
-        await this._onDeleteDevice();
+        confirmDeleteDevice(this, this.hass, this.insteon, this._device!);
         break;
       case 6:
         await this._onShowHideUnusedClicked();
@@ -541,15 +477,11 @@ class InsteonDeviceALDBPage extends LitElement {
           --aldb-table-height: 80vh;
         }
 
-        .header {
-          display: flex;
-          justify-content: space-between;
-        }
-
         .container {
           display: flex;
-          flex-wrap: wrap;
-          margin: 0px;
+          flex-direction: column;
+          margin: 8px auto 0;
+          max-width: 1000px;
         }
 
         insteon-aldb-data-table {
@@ -558,60 +490,6 @@ class InsteonDeviceALDBPage extends LitElement {
           display: block;
           --data-table-border-width: 0;
         }
-        .device-name {
-          display: block;
-          align-items: left;
-          padding-left: 0px;
-          padding-inline-start: 0px;
-          direction: var(--direction);
-          font-size: 24px;
-          position: relative;
-          width: 100%;
-          height: 50%;
-        }
-        .aldb-status {
-          position: relative;
-          display: block;
-        }
-        h1 {
-          margin: 0;
-          font-family: var(--paper-font-headline_-_font-family);
-          -webkit-font-smoothing: var(--paper-font-headline_-_-webkit-font-smoothing);
-          font-size: var(--paper-font-headline_-_font-size);
-          font-weight: var(--paper-font-headline_-_font-weight);
-          letter-spacing: var(--paper-font-headline_-_letter-spacing);
-          line-height: var(--paper-font-headline_-_line-height);
-          opacity: var(--dark-primary-opacity);
-        }
-
-        .page-header {
-          padding: 8px;
-          margin-left: 32px;
-          margin-right: 32px;
-          display: flex;
-          justify-content: space-between;
-        }
-
-        .fullwidth {
-          padding: 8px;
-          box-sizing: border-box;
-          width: 100%;
-          flex-grow: 1;
-        }
-
-        .header-right {
-          align-self: right;
-          display: flex;
-        }
-
-        .header-right img {
-          height: 30px;
-        }
-
-        .header-right:first-child {
-          width: 100%;
-          justify-content: flex-end;
-        }
 
         .actions ha-button {
           margin: 8px;
@@ -619,14 +497,6 @@ class InsteonDeviceALDBPage extends LitElement {
 
         :host([narrow]) .container {
           margin-top: 0;
-        }
-
-        .narrow-header-left {
-          padding: 8px;
-          width: 90%;
-        }
-        .narrow-header-right {
-          align-self: right;
         }
       `,
     ];
