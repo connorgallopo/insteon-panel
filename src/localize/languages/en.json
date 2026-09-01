@@ -266,6 +266,7 @@
       "empty": "Not loaded",
       "failed": "Failed to load",
       "partial": "Partially loaded",
+      "dirty": "Unsaved changes",
       "undefined": "undefined"
     },
     "mode": {
