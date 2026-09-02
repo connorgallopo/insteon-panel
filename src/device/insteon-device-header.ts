@@ -40,15 +40,7 @@ export class InsteonDeviceHeader extends LitElement {
         <h1>${this.device?.name}</h1>
         ${this.device ? this._identity(this.device) : nothing}
       </div>
-      <div class="side">
-        <img
-          src="https://brands.home-assistant.io/insteon/logo.png"
-          alt="Insteon"
-          referrerpolicy="no-referrer"
-          @error=${this._hideLogo}
-        />
-        <slot></slot>
-      </div>
+      <div class="side"><slot></slot></div>
     `;
   }
 
@@ -103,10 +95,6 @@ export class InsteonDeviceHeader extends LitElement {
           </dl>`
         : nothing}
     `;
-  }
-
-  private _hideLogo(ev: Event) {
-    (ev.target as HTMLElement).hidden = true;
   }
 
   static get styles(): CSSResultGroup {
@@ -220,14 +208,8 @@ export class InsteonDeviceHeader extends LitElement {
       }
 
       .side {
-        display: flex;
-        align-items: center;
-        gap: 8px;
         flex-shrink: 0;
-      }
-
-      .side img {
-        height: 30px;
+        margin-inline-end: -8px;
       }
     `;
   }
