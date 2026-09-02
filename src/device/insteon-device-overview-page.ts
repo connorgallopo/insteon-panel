@@ -5,6 +5,7 @@ import { mdiDotsVertical } from "@mdi/js";
 import memoizeOne from "memoize-one";
 import type { ActionDetail } from "@material/mwc-list";
 import type { HomeAssistant, Route } from "@ha/types";
+import type { DeviceRegistryEntry } from "@ha/data/device_registry";
 import "@ha/components/ha-alert";
 import "@ha/components/ha-button";
 import "@ha/components/ha-button-menu";
@@ -37,21 +38,24 @@ import {
 import type { InsteonScene } from "../data/scene";
 import { fetchInsteonScenes } from "../data/scene";
 import { paneState } from "./pane-state";
-import type { AttributedLinks, LinkRow, RowDetail } from "./link-rows";
+import type { AttributedLinks, ButtonLinks, LinkRow, RowDetail } from "./link-rows";
 import {
   attributeRecords,
   buttonNotifiesModem,
   hasModemResponderLink,
   rowDetail,
 } from "./link-rows";
-import { catSubcatFromModel, insteonDeviceByAddress, modemAddress } from "./registry-lookup";
+import {
+  catSubcatFromModel,
+  insteonDeviceByAddress,
+  MODEM_CAT,
+  modemAddress,
+} from "./registry-lookup";
 import { nextGroup } from "./roving";
 import { confirmDeleteDevice } from "./delete-device";
 
 type CardKind = "buttons" | "single" | "fallback" | "none";
 type Section = "controls" | "controlled_by";
-
-const MODEM_CAT = 0x03;
 
 @customElement("insteon-device-overview-page")
 class InsteonDeviceOverviewPage extends LitElement {
@@ -84,8 +88,12 @@ class InsteonDeviceOverviewPage extends LitElement {
   private _unsubscribe?: Promise<() => Promise<void>>;
 
   private _attributed = memoizeOne(
-    (records: ALDBRecord[], groups: number[], modem?: string): AttributedLinks =>
-      attributeRecords(records, groups, modem),
+    (
+      records: ALDBRecord[],
+      groups: number[],
+      modem?: string,
+      loadButton?: number,
+    ): AttributedLinks => attributeRecords(records, groups, modem, loadButton),
   );
 
   protected willUpdate(changed: PropertyValues) {
@@ -101,6 +109,7 @@ class InsteonDeviceOverviewPage extends LitElement {
   }
 
   private async _load() {
+    const token = this.deviceId;
     this._device = undefined;
     this._aldb = undefined;
     this._aldbError = false;
@@ -111,39 +120,63 @@ class InsteonDeviceOverviewPage extends LitElement {
     try {
       device = await fetchInsteonDevice(this.hass, this.deviceId!);
     } catch (_err) {
+      if (this.deviceId !== token) {
+        return;
+      }
       showAlertDialog(this, { text: this.insteon.localize("common.error.device_not_found") });
       navigate("/insteon/devices");
       return;
     }
+    if (this.deviceId !== token) {
+      return;
+    }
     this._device = device;
     this._selectedGroup = this._groups(device)[0];
-    this._resolveLoadGroup(device);
-    this._fetchScenes();
-    await this._fetchRecords();
+    this._resolveLoadGroup(device, token);
+    this._fetchScenes(token);
+    await this._fetchRecords(token);
   }
 
-  private async _fetchRecords() {
+  private async _fetchRecords(token = this.deviceId) {
     if (!this._device) {
       return;
     }
     this._aldbError = false;
+    let aldb: ALDBRecord[];
     try {
-      this._aldb = await fetchInsteonALDB(this.hass, this._device.address);
+      aldb = await fetchInsteonALDB(this.hass, this._device.address);
     } catch (_err) {
+      if (this.deviceId !== token) {
+        return;
+      }
       this._aldb = undefined;
       this._aldbError = true;
+      return;
     }
+    if (this.deviceId !== token) {
+      return;
+    }
+    this._aldb = aldb;
   }
 
-  private async _fetchScenes() {
+  private async _fetchScenes(token = this.deviceId) {
+    let scenes: InsteonScene[];
     try {
-      this._scenes = Object.values(await fetchInsteonScenes(this.hass));
+      scenes = Object.values(await fetchInsteonScenes(this.hass));
     } catch (_err) {
+      if (this.deviceId !== token) {
+        return;
+      }
       this._scenes = [];
+      return;
     }
+    if (this.deviceId !== token) {
+      return;
+    }
+    this._scenes = scenes;
   }
 
-  private async _resolveLoadGroup(device: InsteonDevice) {
+  private async _resolveLoadGroup(device: InsteonDevice, token = this.deviceId) {
     const layout = plateLayout(device.cat, device.subcat);
     if (layout === "keypad_6" || layout === "keypad_8") {
       this._loadGroup = 1;
@@ -154,11 +187,17 @@ class InsteonDeviceOverviewPage extends LitElement {
     }
     try {
       const info = await fetchInsteonProperties(this.hass, device.address, false);
+      if (this.deviceId !== token) {
+        return;
+      }
       const prop = info.properties.find((p) => p.name === "load_button");
       if (prop && typeof prop.value === "number") {
         this._loadGroup = prop.value;
       }
     } catch (_err) {
+      if (this.deviceId !== token) {
+        return;
+      }
       this._loadGroup = undefined;
     }
   }
@@ -539,7 +578,7 @@ class InsteonDeviceOverviewPage extends LitElement {
       return html`
         <ha-alert alert-type="error">
           ${localize("device.overview.records_error")}
-          <ha-button slot="action" appearance="plain" @click=${this._fetchRecords}>
+          <ha-button slot="action" appearance="plain" @click=${() => this._fetchRecords()}>
             ${localize("device.overview.retry")}
           </ha-button>
         </ha-alert>
@@ -575,12 +614,13 @@ class InsteonDeviceOverviewPage extends LitElement {
     }
     const records = this._aldb!;
     const modem = this._modem();
-    const links = this._attributed(records, this._groups(device), modem);
+    const links = this._attributed(records, this._groups(device), modem, this._loadGroup);
     const own = links.byButton.get(group) ?? { controls: [], controlledBy: [] };
     const { localize } = this.insteon;
+    const loaded = this._paneState(device) === "loaded";
     return html`
       ${pending ?? nothing}
-      ${modem && device.cat !== MODEM_CAT && !hasModemResponderLink(records, modem)
+      ${loaded && modem && device.cat !== MODEM_CAT && !hasModemResponderLink(records, modem)
         ? html`
             <ha-alert alert-type="warning">
               ${localize("device.overview.pane.ha_no_control_link")}
@@ -590,13 +630,23 @@ class InsteonDeviceOverviewPage extends LitElement {
             </ha-alert>
           `
         : nothing}
-      ${modem && device.cat !== MODEM_CAT && !buttonNotifiesModem(records, modem, group)
+      ${loaded && modem && device.cat !== MODEM_CAT && !buttonNotifiesModem(records, modem, group)
         ? html`<ha-alert alert-type="info">
             ${localize("device.overview.pane.button_not_notified")}
           </ha-alert>`
         : nothing}
-      ${this._section("controls", own.controls)} ${this._section("controlled_by", own.controlledBy)}
-      ${this._renderOther(links.other)}
+      ${this._renderSections(links, own)}
+    `;
+  }
+
+  private _renderSections(links: AttributedLinks, own: ButtonLinks): TemplateResult {
+    const inert = own.controlledBy.filter(
+      (row) => this._rowDetail(row, "controlled_by").detail.kind === "not_a_button",
+    );
+    const controlledBy = own.controlledBy.filter((row) => !inert.includes(row));
+    return html`
+      ${this._section("controls", own.controls)} ${this._section("controlled_by", controlledBy)}
+      ${this._renderOther([...links.other, ...inert])}
     `;
   }
 
@@ -611,12 +661,19 @@ class InsteonDeviceOverviewPage extends LitElement {
     `;
   }
 
-  private _row(row: LinkRow, section: Section): TemplateResult {
+  private _rowDetail(
+    row: LinkRow,
+    section: Section,
+  ): { entry?: DeviceRegistryEntry; detail: RowDetail } {
     const devices = this.hass.devices ?? {};
     const entry = row.isModem ? undefined : insteonDeviceByAddress(devices, row.target);
     const pair = entry ? catSubcatFromModel(entry.model) : undefined;
     const layout = pair ? plateLayout(pair[0], pair[1]) : undefined;
-    const detail = rowDetail(row, section, layout);
+    return { entry, detail: rowDetail(row, section, layout) };
+  }
+
+  private _row(row: LinkRow, section: Section): TemplateResult {
+    const { entry, detail } = this._rowDetail(row, section);
     const path = this._rowPath(row, detail, entry?.id);
     const name = row.isModem
       ? this.insteon.localize("device.overview.pane.home_assistant")
@@ -661,6 +718,8 @@ class InsteonDeviceOverviewPage extends LitElement {
         return buttonTitle(detail.layout, detail.group, localize);
       case "not_a_button":
         return localize("device.overview.pane.not_a_button", { group: detail.group });
+      case "not_a_button_on_target":
+        return localize("device.overview.pane.not_a_button_on_target", { group: detail.group });
       default:
         return undefined;
     }
@@ -694,9 +753,7 @@ class InsteonDeviceOverviewPage extends LitElement {
                   )}
                 </span>
                 <span slot="supporting-text">
-                  ${localize("device.overview.pane.not_a_button", {
-                    group: row.isController ? row.group : row.data3,
-                  })}
+                  ${localize("device.overview.pane.not_a_button", { group: row.group })}
                 </span>
               </ha-md-list-item>
             `,
@@ -724,13 +781,10 @@ class InsteonDeviceOverviewPage extends LitElement {
         </div>
       `;
     }
-    const links = this._attributed(records, [1], this._modem());
+    const links = this._attributed(records, [1], this._modem(), this._loadGroup);
     const own = links.byButton.get(1)!;
     return html`
-      <div class="pane">
-        ${pending ?? nothing} ${this._section("controls", own.controls)}
-        ${this._section("controlled_by", own.controlledBy)} ${this._renderOther(links.other)}
-      </div>
+      <div class="pane">${pending ?? nothing} ${this._renderSections(links, own)}</div>
     `;
   }
 

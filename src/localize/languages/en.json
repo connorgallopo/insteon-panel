@@ -188,8 +188,8 @@
       "open_in_ha": "Open in Home Assistant",
       "no_links_stored": "No links stored on this device",
       "modem_scenes": "Scenes",
-      "scene_devices": "Scene {group} · {count} devices",
-      "modem_devices": "{count} devices Home Assistant can control",
+      "scene_devices": "Scene {group} · {count, plural, one {# device} other {# devices}}",
+      "modem_devices": "{count, plural, one {# device} other {# devices}} Home Assistant can control",
       "see_aldb": "The full record list is on the All-Link Database tab.",
       "pane": {
         "controls": "Controls",
@@ -205,6 +205,7 @@
         "scene": "Scene {group}",
         "scene_named": "Scene {group}: {name}",
         "not_a_button": "Group {group}, not a button",
+        "not_a_button_on_target": "Button {group} is not a button on that device",
         "other_links": "Other links ({count})",
         "other_links_hint": "These links are not tied to a button. The All-Link Database tab lists every record.",
         "controls_row": "Controls {name}",
@@ -229,8 +230,7 @@
         "engine_version": "Engine version",
         "firmware": "Firmware",
         "aldb_status": "Link database",
-        "buttons": "Buttons",
-        "button": "Button"
+        "buttons": "Buttons"
       }
     },
     "remove_all_refs": {

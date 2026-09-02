@@ -28,6 +28,7 @@ export type RowDetail =
   | { kind: "scene"; group: number }
   | { kind: "button"; layout: PlateLayout; group: number }
   | { kind: "not_a_button"; group: number }
+  | { kind: "not_a_button_on_target"; group: number }
   | { kind: "none" };
 
 const isModemTarget = (rec: ALDBRecord, modem?: string): boolean =>
@@ -46,11 +47,15 @@ const responderButton = (
   rec: ALDBRecord,
   buttons: number[],
   modem?: string,
+  loadButton?: number,
 ): number | undefined => {
   if (buttons.length === 1) {
     return buttons[0];
   }
   if (isModemTarget(rec, modem) && rec.group === 0) {
+    if (loadButton !== undefined && buttons.includes(loadButton)) {
+      return loadButton;
+    }
     return buttons.includes(1) ? 1 : buttons[0];
   }
   if (buttons.includes(rec.data3)) {
@@ -69,6 +74,7 @@ export const attributeRecords = (
   records: ALDBRecord[],
   buttons: number[],
   modem?: string,
+  loadButton?: number,
 ): AttributedLinks => {
   const byButton = new Map<number, ButtonLinks>();
   buttons.forEach((button) => byButton.set(button, { controls: [], controlledBy: [] }));
@@ -79,7 +85,7 @@ export const attributeRecords = (
     .forEach((rec) => {
       const button = rec.is_controller
         ? controllerButton(rec, buttons)
-        : responderButton(rec, buttons, modem);
+        : responderButton(rec, buttons, modem, loadButton);
       const key = [
         rec.is_controller ? "c" : "r",
         normalizeAddress(rec.target),
@@ -122,7 +128,9 @@ export const rowDetail = (
   const raw = section === "controls" ? row.data3 : row.group;
   const group = section === "controls" && raw === 0 && groups.includes(1) ? 1 : raw;
   if (!groups.includes(group)) {
-    return { kind: "not_a_button", group };
+    return section === "controls"
+      ? { kind: "not_a_button_on_target", group }
+      : { kind: "not_a_button", group };
   }
   if (groups.length < 2) {
     return { kind: "none" };

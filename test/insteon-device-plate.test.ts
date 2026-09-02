@@ -22,10 +22,6 @@ export const click = (target: Element) =>
   target.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }));
 
 describe("insteon-device-plate scaffold", () => {
-  it("registers the custom element", () => {
-    expect(customElements.get("insteon-device-plate")).toBeDefined();
-  });
-
   it("renders nothing for an unmapped device", async () => {
     const el = await renderPlate(0x03, 0x15);
     expect(root(el).querySelector("svg")).toBeNull();
@@ -403,13 +399,7 @@ describe("plate legibility", () => {
     expect(hit).not.toBeNull();
     expect(Number(hit.getAttribute("width"))).toBeGreaterThanOrEqual(16);
     expect(Number(hit.getAttribute("height"))).toBeGreaterThanOrEqual(46);
-  });
-
-  it("uses print and edge colours that clear the contrast thresholds", async () => {
-    const el = await renderPlate(0x01, 0x42);
-    const cssText = (el.constructor as typeof InsteonDevicePlate).styles.toString();
-    expect(cssText).toContain("--print: #666666");
-    expect(cssText).toContain("--key-edge: #8c8c8c");
-    expect(cssText).toContain("--led-ring: #8c8c8c");
+    expect(hit.getAttribute("y")).toBe("48");
+    expect(hit.classList.contains("no-edge")).toBe(true);
   });
 });

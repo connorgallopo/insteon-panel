@@ -1,6 +1,6 @@
 import type { DeviceRegistryEntry } from "@ha/data/device_registry";
 
-const MODEM_CAT = 0x03;
+export const MODEM_CAT = 0x03;
 
 export const normalizeAddress = (address: string): string =>
   address.replace(/\./g, "").toUpperCase();

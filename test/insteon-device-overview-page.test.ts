@@ -22,6 +22,7 @@ vi.mock("../src/device/insteon-device-router", () => ({ insteonDeviceTabs: [] })
 
 import { localize } from "../src/localize/localize";
 import type { ALDBRecord } from "../src/data/device";
+import { navigate } from "@ha/common/navigate";
 import "../src/device/insteon-device-overview-page";
 
 const MODEM = "70.8C.C4";
@@ -189,6 +190,10 @@ describe("insteon-device-overview-page", () => {
     expect(t).toContain("Notified when this button is used");
     expect(t).toContain("Can control this button");
     expect(t).not.toContain("No connections");
+    const pane = el.shadowRoot!.querySelector("#pane")!;
+    expect(pane.getAttribute("role")).toBe("region");
+    expect(pane.getAttribute("aria-live")).toBe("polite");
+    expect(pane.getAttribute("aria-label")).toBe("Button A");
   });
 
   it("switches the pane on selection, names scenes and the controller's button, and links rows", async () => {
@@ -212,12 +217,51 @@ describe("insteon-device-overview-page", () => {
     expect(items.some((item) => item.getAttribute("type") === "button")).toBe(true);
   });
 
-  it("lists links that belong to no button under other links", async () => {
+  it("navigates to the other device from a row", async () => {
     const el = await mount(makeHass(defaults()));
+    await select(el, 2);
+    const items = [...el.shadowRoot!.querySelectorAll("ha-md-list-item")];
+    const row = items.find(
+      (item) =>
+        item.querySelector('[slot="headline"]')?.textContent?.trim() === "Family Room Keypad OLD",
+    )!;
+    row.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await settle(el);
+    expect(navigate).toHaveBeenCalledWith("/insteon/device/overview/dev-2");
+  });
+
+  it("lists links that belong to no button under other links", async () => {
+    const extraRecords = [...records, rec({ group: 21, data3: 158 })];
+    const el = await mount(makeHass(defaults({}, kp014, extraRecords)));
     const t = text(el);
     const panel = el.shadowRoot!.querySelector("ha-expansion-panel")!;
-    expect(panel.getAttribute("header") ?? (panel as any).header).toBe("Other links (1)");
+    expect(panel.getAttribute("header") ?? (panel as any).header).toBe("Other links (2)");
     expect(t).toContain("Controls Nook Light");
+    expect(t).toContain("Group 0, not a button");
+    expect(t).toContain("Controlled by Home Assistant");
+    expect(t).toContain("Group 21, not a button");
+    expect(t).not.toContain("Group 158");
+  });
+
+  it("moves links the controller can never fire out of controlled by", async () => {
+    const el = await mount(
+      makeHass(
+        defaults({}, kp014, [
+          ...records,
+          rec({ group: 0, target: "60.79.C2", target_name: "Nook Light", data3: 0 }),
+        ]),
+      ),
+    );
+    const sections = [...el.shadowRoot!.querySelectorAll(".section")].map((section) =>
+      section.textContent!.replace(/\s+/g, " "),
+    );
+    const controlledBy = sections.find((textContent) => textContent.includes("Controlled by"))!;
+    expect(controlledBy).not.toContain("Nook Light");
+    const t = text(el);
+    expect((el.shadowRoot!.querySelector("ha-expansion-panel") as any).header).toBe(
+      "Other links (2)",
+    );
+    expect(t).toContain("Controlled by Nook Light");
     expect(t).toContain("Group 0, not a button");
   });
 
@@ -321,7 +365,7 @@ describe("insteon-device-overview-page", () => {
     const card = el.shadowRoot!.querySelector("ha-card")!;
     expect(card.getAttribute("header") ?? (card as any).header).toBe("Connections");
     expect(t).toContain("Movie");
-    expect(t).toContain("Scene 20 · 1 devices");
+    expect(t).toContain("Scene 20 · 1 device");
     expect(t).toContain("2 devices Home Assistant can control");
     expect(el.shadowRoot!.querySelector("insteon-device-plate")).toBeNull();
   });
@@ -337,6 +381,34 @@ describe("insteon-device-overview-page", () => {
     };
     const el = await mount(makeHass(defaults({}, extender, [])));
     expect(text(el)).toContain("No links stored on this device");
+  });
+
+  it("moves inert links out of controlled by on a device without buttons", async () => {
+    const extender = {
+      ...kp014,
+      name: "Range Extender",
+      address: "26.81.71",
+      cat: 0,
+      subcat: 0x1d,
+      buttons: undefined,
+    };
+    const el = await mount(
+      makeHass(
+        defaults({}, extender, [
+          rec({ is_controller: true, group: 1, data1: 3, data2: 21, data3: 158 }),
+          rec({ group: 0, target: "60.79.C2", target_name: "Nook Light", data3: 0 }),
+        ]),
+      ),
+    );
+    const sections = [...el.shadowRoot!.querySelectorAll(".section")].map((section) =>
+      section.textContent!.replace(/\s+/g, " "),
+    );
+    const controlledBy = sections.find((textContent) => textContent.includes("Controlled by"))!;
+    expect(controlledBy).not.toContain("Nook Light");
+    expect((el.shadowRoot!.querySelector("ha-expansion-panel") as any).header).toBe(
+      "Other links (1)",
+    );
+    expect(text(el)).toContain("Controlled by Nook Light");
   });
 
   it("falls back to selectable tiles for an unknown model", async () => {

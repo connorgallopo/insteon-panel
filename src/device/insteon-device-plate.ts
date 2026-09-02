@@ -362,7 +362,7 @@ export class InsteonDevicePlate extends LitElement {
       ${this._key(
         1,
         svg`
-          <rect class="hit" x="32" y="40" width="16" height="46" rx="2"></rect>
+          <rect class="hit no-edge" x="32" y="48" width="16" height="46" rx="2"></rect>
           <rect class="face lever" x="34" y="44" width="12" height="30" rx="3"></rect>
         `,
       )}
@@ -569,6 +569,10 @@ export class InsteonDevicePlate extends LitElement {
         fill: transparent;
         stroke: var(--key-edge);
         stroke-width: 0.6;
+      }
+
+      .hit.no-edge {
+        stroke: none;
       }
 
       .key[role="tab"]:hover .hit {

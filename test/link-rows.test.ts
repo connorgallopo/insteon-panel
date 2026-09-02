@@ -142,6 +142,11 @@ describe("attributeRecords", () => {
     expect(links.other.length).toBe(1);
     expect(links.other[0].isModem).toBe(false);
   });
+
+  it("gives the modem default link to the load button when one is set", () => {
+    const links = attributeRecords([rec({ group: 0, data3: 158 })], kp014, MODEM, 3);
+    expect(links.byButton.get(3)!.controlledBy.length).toBe(1);
+  });
 });
 
 describe("rowDetail", () => {
@@ -193,6 +198,13 @@ describe("rowDetail", () => {
     expect(rowDetail(deviceRow(0, 0), "controlled_by", "paddle_bar")).toEqual({
       kind: "not_a_button",
       group: 0,
+    });
+  });
+
+  it("flags a data3 value that is not a button on the target", () => {
+    expect(rowDetail(deviceRow(1, 9), "controls", "keypad_i3_4")).toEqual({
+      kind: "not_a_button_on_target",
+      group: 9,
     });
   });
 
