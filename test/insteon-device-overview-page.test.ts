@@ -357,4 +357,31 @@ describe("insteon-device-overview-page", () => {
     expect(headers.length).toBe(1);
     expect(headers[0].getAttribute("slot")).toBe("header");
   });
+
+  it("clears a pending load and its subscription when the device changes", async () => {
+    const unsub = vi.fn(async () => {});
+    const loading = { ...kp014, aldb_status: "loading" };
+    let current: object = loading;
+    const hass = makeHass(
+      defaults(
+        {
+          "insteon/device/get": async () => current,
+          "insteon/aldb/load": async () => undefined,
+        },
+        loading,
+      ),
+    );
+    hass.connection.subscribeMessage = vi.fn(async () => unsub) as any;
+    const el = await mount(hass);
+    await (el as any)._readFromDevice();
+    await settle(el);
+    expect(text(el)).toContain("is loading");
+    current = { ...kp014, name: "Second Device", address: "60.79.C2" };
+    el.deviceId = "dev-3";
+    await settle(el);
+    expect(unsub).toHaveBeenCalled();
+    const header = el.shadowRoot!.querySelector("insteon-device-header")!;
+    expect(header.shadowRoot!.textContent).toContain("Second Device");
+    expect(text(el)).not.toContain("is loading");
+  });
 });

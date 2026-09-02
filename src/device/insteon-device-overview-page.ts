@@ -104,7 +104,9 @@ class InsteonDeviceOverviewPage extends LitElement {
     this._device = undefined;
     this._aldb = undefined;
     this._aldbError = false;
+    this._aldbLoading = false;
     this._loadGroup = undefined;
+    this._stopWatching();
     let device: InsteonDevice;
     try {
       device = await fetchInsteonDevice(this.hass, this.deviceId!);
@@ -204,12 +206,15 @@ class InsteonDeviceOverviewPage extends LitElement {
 
   private _stopWatching() {
     if (this._unsubscribe) {
-      this._unsubscribe.then((unsub) => unsub());
+      this._unsubscribe.then((unsub) => unsub()).catch(() => undefined);
       this._unsubscribe = undefined;
     }
   }
 
   private async _onNotify(message: AldbNotification) {
+    if (!this._unsubscribe) {
+      return;
+    }
     if (message.type !== "status_changed") {
       return;
     }
@@ -708,7 +713,7 @@ class InsteonDeviceOverviewPage extends LitElement {
     }
     const records = this._aldb!;
     if (device.cat === MODEM_CAT) {
-      return this._renderModem(records);
+      return this._renderModem(records, pending);
     }
     const { localize } = this.insteon;
     if (!records.some((rec) => rec.in_use)) {
@@ -729,7 +734,7 @@ class InsteonDeviceOverviewPage extends LitElement {
     `;
   }
 
-  private _renderModem(records: ALDBRecord[]): TemplateResult {
+  private _renderModem(records: ALDBRecord[], pending: TemplateResult | undefined): TemplateResult {
     const { localize } = this.insteon;
     const controlled = new Set(
       records
@@ -739,6 +744,7 @@ class InsteonDeviceOverviewPage extends LitElement {
     const scenes = [...this._scenes].sort((a, b) => a.group - b.group);
     return html`
       <div class="pane">
+        ${pending ?? nothing}
         <div class="section">
           <div class="label">${localize("device.overview.modem_scenes")}</div>
           ${scenes.length === 0
