@@ -167,6 +167,7 @@ export class InsteonALDBDataTable extends LitElement {
     }
     return html`
       <ha-data-table
+        has-fab
         .hass=${this.hass}
         .columns=${this._columns(this.narrow)}
         .data=${this._records(this.records)}

@@ -127,7 +127,6 @@ class InsteonDeviceALDBPage extends LitElement {
         .tabs=${insteonDeviceTabs}
         .localizeFunc=${this.insteon.localize}
         .backCallback=${() => this._handleBackTapped()}
-        hasFab
       >
         ${this.narrow
           ? html`<insteon-device-header
@@ -469,24 +468,20 @@ class InsteonDeviceALDBPage extends LitElement {
           --app-header-border-bottom: 1px solid var(--divider-color);
         }
 
-        :host([narrow]) {
-          --aldb-table-height: 80vh;
-        }
-
-        :host(:not([narrow])) {
-          --aldb-table-height: 80vh;
-        }
-
         .container {
           display: flex;
           flex-direction: column;
-          margin: 8px auto 0;
+          box-sizing: border-box;
+          height: 100%;
+          margin: 0 auto;
+          padding-top: 8px;
           max-width: 1000px;
         }
 
         insteon-aldb-data-table {
+          flex: 1 1 auto;
+          min-height: 0;
           width: 100%;
-          height: var(--aldb-table-height);
           display: block;
           --data-table-border-width: 0;
         }
@@ -496,7 +491,7 @@ class InsteonDeviceALDBPage extends LitElement {
         }
 
         :host([narrow]) .container {
-          margin-top: 0;
+          padding-top: 0;
         }
       `,
     ];

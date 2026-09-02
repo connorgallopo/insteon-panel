@@ -360,23 +360,20 @@ class InsteonDevicePropertiesPage extends LitElement {
           --app-header-border-bottom: 1px solid var(--divider-color);
         }
 
-        :host([narrow]) {
-          --properties-table-height: 80vh;
-        }
-
-        :host(:not([narrow])) {
-          --properties-table-height: 80vh;
-        }
-
         .container {
           display: flex;
           flex-direction: column;
-          margin: 8px auto 0;
+          box-sizing: border-box;
+          height: 100%;
+          margin: 0 auto;
+          padding-top: 8px;
           max-width: 1000px;
         }
+
         insteon-properties-data-table {
+          flex: 1 1 auto;
+          min-height: 0;
           width: 100%;
-          height: var(--properties-table-height);
           display: block;
           --data-table-border-width: 0;
         }
@@ -386,7 +383,7 @@ class InsteonDevicePropertiesPage extends LitElement {
         }
 
         :host([narrow]) .container {
-          margin-top: 0;
+          padding-top: 0;
         }
       `,
     ];
