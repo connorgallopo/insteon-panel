@@ -3,6 +3,7 @@ import { html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators";
 import memoizeOne from "memoize-one";
 import "@ha/components/ha-spinner";
+import "@ha/components/data-table/ha-data-table";
 import type {
   DataTableColumnContainer,
   DataTableRowData,
