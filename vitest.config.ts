@@ -5,6 +5,10 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: /^lit\/((?!.*\.js$).*)$/, replacement: "lit/$1.js" },
+      {
+        find: /^@lit-labs\/observers\/((?!.*\.js$).*)$/,
+        replacement: "@lit-labs/observers/$1.js",
+      },
       { find: /^@ha\/(.*)$/, replacement: resolve(__dirname, "homeassistant-frontend/src/$1") },
     ],
   },

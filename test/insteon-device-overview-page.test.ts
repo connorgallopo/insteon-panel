@@ -315,6 +315,8 @@ describe("insteon-device-overview-page", () => {
     const el = await mount(makeHass(defaults()));
     await select(el, 3);
     expect(text(el)).toContain("Home Assistant is not notified when this button is used");
+    expect(text(el)).toContain("Add default links");
+    expect(el.shadowRoot!.querySelector('ha-alert[alert-type="warning"]')).not.toBeNull();
   });
 
   it("renders the modem as scenes and a device count", async () => {

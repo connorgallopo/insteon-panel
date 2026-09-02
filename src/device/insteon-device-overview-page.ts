@@ -631,9 +631,14 @@ class InsteonDeviceOverviewPage extends LitElement {
           `
         : nothing}
       ${loaded && modem && device.cat !== MODEM_CAT && !buttonNotifiesModem(records, modem, group)
-        ? html`<ha-alert alert-type="info">
-            ${localize("device.overview.pane.button_not_notified")}
-          </ha-alert>`
+        ? html`
+            <ha-alert alert-type="warning">
+              ${localize("device.overview.pane.button_not_notified")}
+              <ha-button slot="action" appearance="plain" @click=${this._addDefaultLinks}>
+                ${localize("common.actions.add_default_links")}
+              </ha-button>
+            </ha-alert>
+          `
         : nothing}
       ${this._renderSections(links, own)}
     `;

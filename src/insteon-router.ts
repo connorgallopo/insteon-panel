@@ -73,6 +73,10 @@ class InsteonRouter extends HassRouterPage {
         tag: "broken-links-panel",
         load: () => import("./config/broken-links-panel"),
       },
+      modem_links: {
+        tag: "modem-links-panel",
+        load: () => import("./config/modem-links-panel"),
+      },
       unknown_devices: {
         tag: "unknown-devices-panel",
         load: () => import("./config/unknown-devices-panel"),

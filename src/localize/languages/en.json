@@ -118,6 +118,21 @@
       "load_aldb_1": " will load in the background. If this is a battery operated device, you will need to trigger the device to wake up before the ALDB will load.",
       "remove_record": "The record will be removed from device "
     },
+    "modem_links": {
+      "caption": "Missing modem links",
+      "fields": {
+        "device": "Device",
+        "address": "Address",
+        "problem": "Problem"
+      },
+      "status": {
+        "control": "Home Assistant cannot control this device",
+        "unreported": "Not reported to Home Assistant: {buttons}",
+        "not_loaded": "Link database not loaded"
+      },
+      "scanning": "Reading every device's link database",
+      "none": "Every device is linked to the modem"
+    },
     "unknown_devices": {
       "caption": "Unknown Devices",
       "fields": {
