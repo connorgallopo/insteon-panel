@@ -34,7 +34,7 @@ interface ModemLinkRow extends DataTableRowData {
   id: string;
   name: string;
   address: string;
-  status: "gaps" | "not_loaded";
+  status: "gaps" | "not_loaded" | "error";
   problem: string;
   battery: boolean;
 }
@@ -55,6 +55,8 @@ export class ModemLinksPanel extends LitElement {
 
   private _modem?: string;
 
+  private _watches = new Map<string, Promise<() => Promise<void>>>();
+
   public firstUpdated(changedProperties) {
     super.firstUpdated(changedProperties);
     if (!this.hass || !this.insteon) {
@@ -62,6 +64,11 @@ export class ModemLinksPanel extends LitElement {
       return;
     }
     this._scan();
+  }
+
+  public disconnectedCallback() {
+    super.disconnectedCallback();
+    Array.from(this._watches.keys()).forEach((address) => this._stopWatching(address));
   }
 
   private async _scan() {
@@ -91,7 +98,14 @@ export class ModemLinksPanel extends LitElement {
       device = await fetchInsteonDevice(this.hass, entry.id);
       records = await fetchInsteonALDB(this.hass, address);
     } catch (_err) {
-      return undefined;
+      return {
+        id: entry.id,
+        name: entry.name_by_user || entry.name || address,
+        address,
+        status: "error",
+        problem: this.insteon.localize("utils.modem_links.status.unreachable"),
+        battery: false,
+      };
     }
     const groups = this._groups(device);
     if (groups.length === 0 || this._modem === undefined) {
@@ -157,18 +171,26 @@ export class ModemLinksPanel extends LitElement {
     this._rows = row ? [...rest, row] : rest;
   }
 
+  private _stopWatching(address: string) {
+    const unsubscribe = this._watches.get(address);
+    if (!unsubscribe) {
+      return;
+    }
+    this._watches.delete(address);
+    unsubscribe.then((unsub) => unsub()).catch(() => undefined);
+  }
+
   private _watchThenRefresh(row: ModemLinkRow) {
-    let unsubscribe: Promise<() => Promise<void>> | undefined = subscribeAldbLoading(
-      this.hass,
+    this._stopWatching(row.address);
+    this._watches.set(
       row.address,
-      async (message) => {
+      subscribeAldbLoading(this.hass, row.address, async (message) => {
         if (message.type !== "status_changed" || message.is_loading) {
           return;
         }
-        unsubscribe?.then((unsub) => unsub()).catch(() => undefined);
-        unsubscribe = undefined;
+        this._stopWatching(row.address);
         await this._refreshRow(row.id);
-      },
+      }),
     );
   }
 
@@ -187,8 +209,13 @@ export class ModemLinksPanel extends LitElement {
     this._watchThenRefresh(row);
     try {
       await addDefaultLinks(this.hass, row.address);
+      const device = await fetchInsteonDevice(this.hass, row.id);
+      if (device.aldb_status !== "loading") {
+        this._stopWatching(row.address);
+      }
       await this._refreshRow(row.id);
     } catch (_err) {
+      this._stopWatching(row.address);
       showAlertDialog(this, {
         text: this.insteon.localize("common.error.write"),
         confirmText: this.insteon.localize("common.close"),
@@ -211,8 +238,13 @@ export class ModemLinksPanel extends LitElement {
     this._watchThenRefresh(row);
     try {
       await loadALDB(this.hass, row.address);
+      const device = await fetchInsteonDevice(this.hass, row.id);
+      if (device.aldb_status !== "loading") {
+        this._stopWatching(row.address);
+      }
       await this._refreshRow(row.id);
     } catch (_err) {
+      this._stopWatching(row.address);
       showAlertDialog(this, {
         text: this.insteon.localize("common.error.load"),
         confirmText: this.insteon.localize("common.close"),
@@ -221,6 +253,9 @@ export class ModemLinksPanel extends LitElement {
   }
 
   private _rowActions(row: ModemLinkRow) {
+    if (row.status === "error") {
+      return [];
+    }
     if (row.status === "not_loaded") {
       return [
         {

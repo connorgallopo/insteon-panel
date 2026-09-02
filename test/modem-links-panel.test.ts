@@ -69,6 +69,15 @@ const entries = [
     config_entries: ["entry-1"],
   },
   {
+    id: "dev-5",
+    identifiers: [["insteon", "4D.52.0A"]],
+    model: "2474DWH (0x01, 0x24)",
+    via_device_id: "modem-1",
+    name: "Back Porch Switch",
+    name_by_user: null,
+    config_entries: ["entry-1"],
+  },
+  {
     id: "other",
     identifiers: [["zwave", "1"]],
     model: null,
@@ -175,7 +184,12 @@ const makeHass = () => ({
     subscribeMessage: vi.fn(async () => async () => {}),
   },
   callWS: vi.fn(async (msg: { type: string; device_id?: string; device_address?: string }) => {
-    if (msg.type === "insteon/device/get") return devicesById[msg.device_id!];
+    if (msg.type === "insteon/device/get") {
+      if (msg.device_id === "dev-5") {
+        throw new Error("device unreachable");
+      }
+      return devicesById[msg.device_id!];
+    }
     if (msg.type === "insteon/aldb/get") return recordsByAddress[msg.device_address!];
     if (msg.type === "insteon/aldb/add_default_links") return undefined;
     throw new Error("unexpected " + msg.type);
@@ -207,13 +221,26 @@ const mount = async () => {
 describe("modem-links-panel", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
+    devicesById["dev-1"] = {
+      name: "Becca's Office Switch",
+      address: "38.EC.93",
+      is_battery: false,
+      aldb_status: "loaded",
+      cat: 1,
+      subcat: 0x20,
+      buttons: { 1: "dimmable_light" },
+    };
+    recordsByAddress["38.EC.93"] = [
+      rec({ is_controller: true, group: 0 }),
+      rec({ group: 0, target: "60.79.C2", target_name: "Nook" }),
+    ];
   });
 
   it("lists only the devices with gaps, with the problem spelled out", async () => {
     const el = await mount();
     expect(el._scanning).toBe(false);
     const byAddress = Object.fromEntries(el._rows.map((row: any) => [row.address, row]));
-    expect(Object.keys(byAddress).sort()).toEqual(["05.DC.21", "38.EC.93", "39.43.A8"]);
+    expect(Object.keys(byAddress).sort()).toEqual(["05.DC.21", "38.EC.93", "39.43.A8", "4D.52.0A"]);
     expect(byAddress["38.EC.93"].status).toBe("gaps");
     expect(byAddress["38.EC.93"].problem).toBe(
       "Home Assistant cannot control this device. Not reported to Home Assistant: Paddle",
@@ -243,5 +270,49 @@ describe("modem-links-panel", () => {
       ),
     ).toBe(true);
     expect(el._rows.some((candidate: any) => candidate.address === "38.EC.93")).toBe(false);
+  });
+
+  it("shows an unreachable device instead of dropping it", async () => {
+    const el = await mount();
+    const row = el._rows.find((candidate: any) => candidate.address === "4D.52.0A");
+    expect(row).toBeDefined();
+    expect(row.status).toBe("error");
+    expect(row.problem).toBe("Could not read this device");
+  });
+
+  it("refreshes a row when the load finishes and drops the watch on disconnect", async () => {
+    const el = await mount();
+    const row = el._rows.find((candidate: any) => candidate.address === "38.EC.93");
+    const unsub = vi.fn(async () => {});
+    let capturedCallback: ((message: any) => void) | undefined;
+    el.hass.connection.subscribeMessage = vi.fn(async (callback: (message: any) => void) => {
+      capturedCallback = callback;
+      return unsub;
+    });
+    devicesById["dev-1"] = { ...devicesById["dev-1"], aldb_status: "loading" };
+    await el._handleAddDefaultLinks(row);
+    await settle(el);
+    expect(capturedCallback).toBeDefined();
+    expect(unsub).not.toHaveBeenCalled();
+    devicesById["dev-1"] = { ...devicesById["dev-1"], aldb_status: "loaded" };
+    recordsByAddress["38.EC.93"] = [rec({ group: 0 }), rec({ is_controller: true, group: 1 })];
+    capturedCallback!({ type: "status_changed", is_loading: false });
+    await settle(el);
+    expect(el._rows.some((candidate: any) => candidate.address === "38.EC.93")).toBe(false);
+    expect(unsub).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops the watch when the panel disconnects", async () => {
+    const el = await mount();
+    const row = el._rows.find((candidate: any) => candidate.address === "38.EC.93");
+    const unsub = vi.fn(async () => {});
+    el.hass.connection.subscribeMessage = vi.fn(async () => unsub);
+    devicesById["dev-1"] = { ...devicesById["dev-1"], aldb_status: "loading" };
+    await el._handleAddDefaultLinks(row);
+    await settle(el);
+    expect(unsub).not.toHaveBeenCalled();
+    el.remove();
+    await settle(el);
+    expect(unsub).toHaveBeenCalledTimes(1);
   });
 });

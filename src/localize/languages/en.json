@@ -128,7 +128,8 @@
       "status": {
         "control": "Home Assistant cannot control this device",
         "unreported": "Not reported to Home Assistant: {buttons}",
-        "not_loaded": "Link database not loaded"
+        "not_loaded": "Link database not loaded",
+        "unreachable": "Could not read this device"
       },
       "scanning": "Reading every device's link database",
       "none": "Every device is linked to the modem"
