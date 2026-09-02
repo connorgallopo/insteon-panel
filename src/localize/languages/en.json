@@ -343,6 +343,9 @@
       "modified": "Modified",
       "value": "Value"
     },
+    "form": {
+      "range": "{min} to {max}"
+    },
     "form_options": {
       "on_off_switch_main": "Main switch",
       "dimmable_light_main": "Main dimmer switch",

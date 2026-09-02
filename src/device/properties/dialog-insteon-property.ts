@@ -11,6 +11,7 @@ import "@ha/components/ha-form/ha-form";
 import "@ha/components/ha-button";
 import type { HaFormSchema, HaFormMultiSelectSchema } from "@ha/components/ha-form/types";
 import type { InsteonPropertyDialogParams } from "./show-dialog-insteon-property";
+import { propertyFormSchema, propertyRange } from "./property-form";
 
 @customElement("dialog-insteon-property")
 class DialogInsteonProperty extends LitElement {
@@ -49,7 +50,7 @@ class DialogInsteonProperty extends LitElement {
       this._schema = this._radio_button_schema(rb_schema);
     } else {
       this._formData[this._record!.name] = this._record!.value;
-      this._schema = params.schema;
+      this._schema = params.schema.map(propertyFormSchema);
     }
     this._callback = params.callback;
     this._title = params.title;
@@ -68,9 +69,13 @@ class DialogInsteonProperty extends LitElement {
         .heading=${createCloseHeading(this.hass, this._title!)}
       >
         <div class="form">
+          <p class="secondary">${this._record.name}</p>
           <ha-form
+            .hass=${this.hass}
             .data=${this._formData}
             .schema=${this._schema}
+            .computeLabel=${this._computeLabel}
+            .computeHelper=${this._computeHelper}
             @value-changed=${this._valueChanged}
             .error=${this._errors}
           ></ha-form>
@@ -123,6 +128,16 @@ class DialogInsteonProperty extends LitElement {
   private _valueChanged(ev: CustomEvent) {
     this._formData = ev.detail.value;
   }
+
+  private _computeLabel = (schema: HaFormSchema): string =>
+    this._record.name === "radio_button_groups"
+      ? schema.name
+      : this.insteon.localize("properties.descriptions." + schema.name) || schema.name;
+
+  private _computeHelper = (schema: HaFormSchema): string | undefined => {
+    const range = propertyRange(schema);
+    return range ? this.insteon.localize("properties.form.range", range) : undefined;
+  };
 
   private _radio_button_value(
     curr_prop: PropertyRadioButtons,
@@ -227,6 +242,10 @@ class DialogInsteonProperty extends LitElement {
         }
         .title {
           width: 200px;
+        }
+        .secondary {
+          color: var(--secondary-text-color);
+          margin: 0 0 16px;
         }
       `,
     ];
