@@ -942,6 +942,9 @@ class InsteonDeviceOverviewPage extends LitElement {
 
         ha-md-list {
           --md-list-container-color: transparent;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 6px;
           padding: 0;
         }
 
@@ -952,7 +955,6 @@ class InsteonDeviceOverviewPage extends LitElement {
           --md-list-item-trailing-space: 10px;
           border: 1px solid var(--divider-color);
           border-radius: 8px;
-          margin-bottom: 6px;
         }
 
         ha-expansion-panel {
