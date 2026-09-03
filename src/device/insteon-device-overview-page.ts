@@ -407,7 +407,7 @@ class InsteonDeviceOverviewPage extends LitElement {
           .path=${mdiDotsVertical}
         ></ha-icon-button>
         <ha-list-item>${this.insteon.localize("common.actions.load")}</ha-list-item>
-        <ha-list-item>${this.insteon.localize("device.overview.open_in_ha")}</ha-list-item>
+        <ha-list-item>${this.insteon.localize("device.actions.open_in_ha")}</ha-list-item>
         <ha-list-item class="warning"
           >${this.insteon.localize("device.actions.delete")}</ha-list-item
         >

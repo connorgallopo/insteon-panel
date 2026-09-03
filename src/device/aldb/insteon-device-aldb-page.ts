@@ -178,6 +178,7 @@ class InsteonDeviceALDBPage extends LitElement {
           .path=${mdiDotsVertical}
         ></ha-icon-button>
         <ha-list-item> ${this.insteon!.localize("common.actions.load")} </ha-list-item>
+        <ha-list-item>${this.insteon.localize("device.actions.open_in_ha")}</ha-list-item>
         <ha-list-item> ${this.insteon!.localize("aldb.actions.add_default_links")} </ha-list-item>
         <ha-list-item .disabled=${!this._dirty()}>
           ${this.insteon!.localize("common.actions.write")}
@@ -360,21 +361,24 @@ class InsteonDeviceALDBPage extends LitElement {
         await this._onLoadALDBClick();
         break;
       case 1:
-        await this._onAddDefaultLinksClicked();
+        navigate("/config/devices/device/" + this.deviceId);
         break;
       case 2:
-        await this._onWriteALDBClick();
+        await this._onAddDefaultLinksClicked();
         break;
       case 3:
-        await this._onResetALDBClick();
+        await this._onWriteALDBClick();
         break;
       case 4:
-        await this._download();
+        await this._onResetALDBClick();
         break;
       case 5:
-        confirmDeleteDevice(this, this.hass, this.insteon, this._device!);
+        await this._download();
         break;
       case 6:
+        confirmDeleteDevice(this, this.hass, this.insteon, this._device!);
+        break;
+      case 7:
         await this._onShowHideUnusedClicked();
         break;
     }

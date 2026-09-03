@@ -134,20 +134,17 @@ class InsteonDevicePropertiesPage extends LitElement {
           .path=${mdiDotsVertical}
         ></ha-icon-button>
 
-        <!-- 0 -->
         <ha-list-item> ${this.insteon!.localize("common.actions.load")} </ha-list-item>
+        <ha-list-item>${this.insteon.localize("device.actions.open_in_ha")}</ha-list-item>
 
-        <!-- 1 -->
         <ha-list-item .disabled=${!this._dirty()}>
           ${this.insteon!.localize("common.actions.write")}
         </ha-list-item>
 
-        <!-- 2 -->
         <ha-list-item .disabled=${!this._dirty()}>
           ${this.insteon!.localize("common.actions.reset")}
         </ha-list-item>
 
-        <!-- 3 -->
         <ha-list-item
           aria-label=${this.insteon.localize("device.actions.delete")}
           class=${classMap({ warning: true })}
@@ -155,7 +152,6 @@ class InsteonDevicePropertiesPage extends LitElement {
           ${this.insteon.localize("device.actions.delete")}
         </ha-list-item>
 
-        <!-- 4 -->
         ${this._advancedAvailable
           ? html`<ha-list-item>
               ${this.insteon!.localize("properties.actions." + this._showHideAdvanced)}
@@ -279,15 +275,18 @@ class InsteonDevicePropertiesPage extends LitElement {
         await this._onLoadPropertiesClick();
         break;
       case 1:
-        await this._onWritePropertiesClick();
+        navigate("/config/devices/device/" + this.deviceId);
         break;
       case 2:
-        await this._onResetPropertiesClick();
+        await this._onWritePropertiesClick();
         break;
       case 3:
-        confirmDeleteDevice(this, this.hass, this.insteon, this._device!);
+        await this._onResetPropertiesClick();
         break;
       case 4:
+        confirmDeleteDevice(this, this.hass, this.insteon, this._device!);
+        break;
+      case 5:
         await this._onShowHideAdvancedClicked();
         break;
     }

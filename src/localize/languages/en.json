@@ -201,7 +201,6 @@
       "select_hint": "Select a button to see what it controls",
       "records_error": "Could not read the link database from Home Assistant.",
       "retry": "Retry",
-      "open_in_ha": "Open in Home Assistant",
       "no_links_stored": "No links stored on this device",
       "modem_scenes": "Scenes",
       "scene_devices": "Scene {group} · {count, plural, one {# device} other {# devices}}",
@@ -258,7 +257,8 @@
     "actions": {
       "add": "Add Insteon Device",
       "stop": "Stop",
-      "delete": "Delete device"
+      "delete": "Delete device",
+      "open_in_ha": "Open in Home Assistant"
     },
     "fields": {
       "device_address": "Insteon device address (optional)",
