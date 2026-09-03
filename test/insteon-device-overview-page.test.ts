@@ -459,3 +459,19 @@ describe("insteon-device-overview-page", () => {
     expect(text(el)).not.toContain("is loading");
   });
 });
+
+describe("load caption", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("only captions the load button while another button is selected", async () => {
+    const el = await mount(makeHass(defaults()));
+    const plate = () => el.shadowRoot!.querySelector("insteon-device-plate") as any;
+    expect(plate().loadCaption).toBeUndefined();
+    await select(el, 2);
+    expect(plate().loadCaption).toBe("Load button: A");
+    await select(el, 1);
+    expect(plate().loadCaption).toBeUndefined();
+  });
+});

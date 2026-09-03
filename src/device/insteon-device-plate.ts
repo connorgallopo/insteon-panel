@@ -461,7 +461,7 @@ export class InsteonDevicePlate extends LitElement {
       }
 
       .caption {
-        font-size: 11px;
+        font-size: 12px;
         color: var(--secondary-text-color, #6b6b6b);
       }
 
@@ -496,7 +496,7 @@ export class InsteonDevicePlate extends LitElement {
       .key.selected .face,
       .key:focus-visible .face {
         stroke: var(--primary-color);
-        stroke-width: 1.5;
+        stroke-width: 2.5;
       }
 
       .led {
@@ -542,7 +542,7 @@ export class InsteonDevicePlate extends LitElement {
       .key.selected .face.row,
       .key:focus-visible .face.row {
         stroke: var(--primary-color);
-        stroke-width: 1.5;
+        stroke-width: 2.5;
       }
 
       .shadow {
@@ -582,7 +582,7 @@ export class InsteonDevicePlate extends LitElement {
       .key.selected .hit,
       .key:focus-visible .hit {
         stroke: var(--primary-color);
-        stroke-width: 1.5;
+        stroke-width: 2.5;
       }
 
       .btn {

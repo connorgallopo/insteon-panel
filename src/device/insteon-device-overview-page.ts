@@ -455,7 +455,11 @@ class InsteonDeviceOverviewPage extends LitElement {
 
   private _loadCaption(device: InsteonDevice): string | undefined {
     const layout = plateLayout(device.cat, device.subcat);
-    if (this._loadGroup === undefined || !layout.startsWith("keypad")) {
+    if (
+      this._loadGroup === undefined ||
+      this._selectedGroup === this._loadGroup ||
+      !layout.startsWith("keypad")
+    ) {
       return undefined;
     }
     return this.insteon.localize("device.overview.pane.load_caption", {
