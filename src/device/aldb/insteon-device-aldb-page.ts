@@ -485,6 +485,7 @@ class InsteonDeviceALDBPage extends LitElement {
           width: 100%;
           display: block;
           --data-table-border-width: 0;
+          --data-table-background-color: var(--primary-background-color);
         }
 
         .actions ha-button {
