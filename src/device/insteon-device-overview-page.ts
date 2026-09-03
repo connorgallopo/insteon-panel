@@ -858,7 +858,8 @@ class InsteonDeviceOverviewPage extends LitElement {
         }
 
         ha-card {
-          margin: 8px;
+          margin: 16px 8px 8px;
+          --ha-card-header-font-size: 20px;
         }
 
         .card-content.center {

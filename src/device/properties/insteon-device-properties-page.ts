@@ -373,6 +373,7 @@ class InsteonDevicePropertiesPage extends LitElement {
         insteon-properties-data-table {
           flex: 1 1 auto;
           min-height: 0;
+          margin-top: 16px;
           width: 100%;
           display: block;
           --data-table-border-width: 0;
