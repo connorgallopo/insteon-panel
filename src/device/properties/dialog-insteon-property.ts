@@ -1,7 +1,6 @@
 import type { CSSResultGroup, TemplateResult } from "lit";
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators";
-import "@ha/components/ha-code-editor";
 import { createCloseHeading } from "@ha/components/ha-dialog";
 import { haStyleDialog } from "@ha/resources/styles";
 import type { HomeAssistant } from "@ha/types";

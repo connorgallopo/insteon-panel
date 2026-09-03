@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@ha/components/ha-code-editor", () => ({}));
 vi.mock("@ha/components/ha-dialog", () => ({
   createCloseHeading: (_hass: unknown, title: string) => title,
 }));
