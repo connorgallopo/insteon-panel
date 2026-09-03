@@ -940,6 +940,10 @@ class InsteonDeviceOverviewPage extends LitElement {
           margin-bottom: 12px;
         }
 
+        ha-alert ha-button {
+          white-space: nowrap;
+        }
+
         ha-md-list {
           --md-list-container-color: transparent;
           display: grid;
